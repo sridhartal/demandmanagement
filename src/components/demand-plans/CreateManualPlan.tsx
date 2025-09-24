@@ -268,7 +268,7 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
       {/* Budget Section */}
       <div className="mt-6">
         <label className="block text-sm font-medium text-gray-700 mb-4">
-          Budget (Annual Salary)
+          Budget Details
         </label>
         <div className="grid grid-cols-3 gap-4">
           <div>
@@ -323,55 +323,51 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
           Mandatory Skills * (Max 7)
         </label>
        
-       {/* Display current skills as pills */}
-       {currentRequisition.mandatory_skills.filter(skill => skill.trim()).length > 0 && (
-         <div className="mb-4">
-           <div className="flex flex-wrap gap-2">
-             {currentRequisition.mandatory_skills.filter(skill => skill.trim()).map((skill, index) => (
-               <span
-                 key={index}
-                 className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800"
-               >
-                 {skill}
-                 <button
-                   onClick={() => removeSkill('mandatory_skills', currentRequisition.mandatory_skills.indexOf(skill))}
-                   className="ml-2 text-blue-600 hover:text-blue-800"
-                 >
-                   ×
-                 </button>
-               </span>
-             ))}
-           </div>
-         </div>
-       )}
-       
-        <div className="space-y-3">
-          {currentRequisition.mandatory_skills.map((skill, skillIndex) => (
-            <div key={skillIndex} className="flex space-x-2">
-              <input
-                type="text"
-                value={skill}
-                onChange={(e) => updateSkill('mandatory_skills', skillIndex, e.target.value)}
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter skill"
-              />
-              <button
-                onClick={() => removeSkill('mandatory_skills', skillIndex)}
-                className="text-red-600 hover:text-red-700 transition-colors p-2 hover:bg-red-50 rounded-lg"
+        {/* Skills Pills Display */}
+        <div className="mb-4">
+          <div className="flex flex-wrap gap-2 mb-3">
+            {currentRequisition.mandatory_skills.filter(skill => skill.trim()).map((skill, index) => (
+              <span
+                key={index}
+                className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800"
               >
-                <Trash2 className="w-4 h-4" />
-              </button>
+                {skill}
+                <button
+                  onClick={() => {
+                    const skillIndex = currentRequisition.mandatory_skills.indexOf(skill);
+                    removeSkill('mandatory_skills', skillIndex);
+                  }}
+                  className="ml-2 text-blue-600 hover:text-blue-800"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+          
+          {/* Search Input for Adding Skills */}
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search and add mandatory skills..."
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && e.currentTarget.value.trim() && currentRequisition.mandatory_skills.length < 7) {
+                  const newSkill = e.currentTarget.value.trim();
+                  if (!currentRequisition.mandatory_skills.includes(newSkill)) {
+                    setCurrentRequisition(prev => ({
+                      ...prev,
+                      mandatory_skills: [...prev.mandatory_skills.filter(s => s.trim()), newSkill]
+                    }));
+                    e.currentTarget.value = '';
+                  }
+                }
+              }}
+            />
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">
+              Press Enter to add
             </div>
-          ))}
-          {currentRequisition.mandatory_skills.length < 7 && (
-            <button
-              onClick={() => addSkill('mandatory_skills')}
-              className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 text-sm font-medium hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add Mandatory Skill</span>
-            </button>
-          )}
+          </div>
         </div>
       </div>
 
@@ -381,53 +377,51 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
           Optional Skills
         </label>
        
-       {/* Display current optional skills as pills */}
-       {currentRequisition.optional_skills.filter(skill => skill.trim()).length > 0 && (
-         <div className="mb-4">
-           <div className="flex flex-wrap gap-2">
-             {currentRequisition.optional_skills.filter(skill => skill.trim()).map((skill, index) => (
-               <span
-                 key={index}
-                 className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700"
-               >
-                 {skill}
-                 <button
-                   onClick={() => removeSkill('optional_skills', currentRequisition.optional_skills.indexOf(skill))}
-                   className="ml-2 text-gray-600 hover:text-gray-800"
-                 >
-                   ×
-                 </button>
-               </span>
-             ))}
-           </div>
-         </div>
-       )}
-       
-        <div className="space-y-3">
-          {currentRequisition.optional_skills.map((skill, skillIndex) => (
-            <div key={skillIndex} className="flex space-x-2">
-              <input
-                type="text"
-                value={skill}
-                onChange={(e) => updateSkill('optional_skills', skillIndex, e.target.value)}
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter skill"
-              />
-              <button
-                onClick={() => removeSkill('optional_skills', skillIndex)}
-                className="text-red-600 hover:text-red-700 transition-colors p-2 hover:bg-red-50 rounded-lg"
+        {/* Skills Pills Display */}
+        <div className="mb-4">
+          <div className="flex flex-wrap gap-2 mb-3">
+            {currentRequisition.optional_skills.filter(skill => skill.trim()).map((skill, index) => (
+              <span
+                key={index}
+                className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700"
               >
-                <Trash2 className="w-4 h-4" />
-              </button>
+                {skill}
+                <button
+                  onClick={() => {
+                    const skillIndex = currentRequisition.optional_skills.indexOf(skill);
+                    removeSkill('optional_skills', skillIndex);
+                  }}
+                  className="ml-2 text-gray-600 hover:text-gray-800"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+          
+          {/* Search Input for Adding Skills */}
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search and add optional skills..."
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                  const newSkill = e.currentTarget.value.trim();
+                  if (!currentRequisition.optional_skills.includes(newSkill)) {
+                    setCurrentRequisition(prev => ({
+                      ...prev,
+                      optional_skills: [...prev.optional_skills.filter(s => s.trim()), newSkill]
+                    }));
+                    e.currentTarget.value = '';
+                  }
+                }
+              }}
+            />
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">
+              Press Enter to add
             </div>
-          ))}
-          <button
-            onClick={() => addSkill('optional_skills')}
-            className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 text-sm font-medium hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Optional Skill</span>
-          </button>
+          </div>
         </div>
       </div>
     </div>
