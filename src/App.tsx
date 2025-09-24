@@ -11,6 +11,7 @@ import { AICreate } from './components/demand-plans/AICreate';
 import { DemandPlansList } from './components/demand-plans/DemandPlansList';
 import { ApprovalsList } from './components/approvals/ApprovalsList';
 import { Analytics } from './components/analytics/Analytics';
+import { OrgChartBuilder } from './components/org-chart/OrgChartBuilder';
 import { Settings } from './components/settings/Settings';
 
 function App() {
@@ -50,6 +51,7 @@ function App() {
       'ai-create': { label: 'AI Assistant', parent: 'demand-plans' },
       'approvals': { label: 'Approvals' },
       'analytics': { label: 'Analytics & Reports' },
+      'org-chart': { label: 'Org Chart Builder' },
       'settings': { label: 'Settings' }
     };
 
@@ -83,6 +85,8 @@ function App() {
         return <ApprovalsList />;
       case 'analytics':
         return <Analytics />;
+      case 'org-chart':
+        return <OrgChartBuilder />;
       case 'settings':
         return <Settings />;
       default:

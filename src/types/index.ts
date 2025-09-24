@@ -91,4 +91,3 @@ export const APPROVAL_LEVELS = {
   1: 'Department Head',
   2: 'Regional Manager',
   3: 'VP/Director'
-};

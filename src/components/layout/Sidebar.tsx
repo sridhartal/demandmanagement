@@ -55,6 +55,11 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
       icon: BarChart3
     },
     {
+      id: 'org-chart',
+      label: 'Org Chart Builder',
+      icon: Users
+    },
+    {
       id: 'settings',
       label: 'Settings',
       icon: Settings
