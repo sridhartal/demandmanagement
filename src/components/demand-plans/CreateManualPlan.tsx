@@ -77,7 +77,36 @@ const JOB_DESCRIPTION_TEMPLATES = {
 const DEFAULT_TEMPLATES = [
   {
     title: 'Software Engineer - Entry Level',
-    content: 'We are looking for a Junior Software Engineer to join our dynamic team. You will work on developing and maintaining web applications using modern technologies. This role is perfect for recent graduates or developers with 0-2 years of experience who are eager to learn and grow in a collaborative environment.'
+    content: `Job brief
+We are looking for a passionate Software Engineer to design, develop and install software solutions.
+
+Software Engineer responsibilities include gathering user requirements, defining system functionality and writing code in various languages, like Java, Ruby on Rails or .NET programming languages (e.g. C++ or JScript.NET.) Our ideal candidates are familiar with the software development life cycle (SDLC) from preliminary system analysis to tests and deployment.
+
+Ultimately, the role of the Software Engineer is to build high-quality, innovative and fully performing software that complies with coding standards and technical design.
+
+Responsibilities
+Execute full software development life cycle (SDLC)
+Develop flowcharts, layouts and documentation to identify requirements and solutions
+Write well-designed, testable code
+Produce specifications and determine operational feasibility
+Integrate software components into a fully functional software system
+Develop software verification plans and quality assurance procedures
+Document and maintain software functionality
+Troubleshoot, debug and upgrade existing systems
+Deploy programs and evaluate user feedback
+Comply with project plans and industry standards
+Ensure software is updated with latest features
+
+Requirements and skills
+Proven work experience as a Software Engineer or Software Developer
+Experience designing interactive applications
+Ability to develop software in Java, Ruby on Rails, C++ or other programming languages
+Excellent knowledge of relational databases, SQL and ORM technologies (JPA2, Hibernate)
+Experience developing web applications using at least one popular web framework (JSF, Wicket, GWT, Spring MVC)
+Experience with test-driven development
+Proficiency in software engineering tools
+Ability to document requirements and specifications
+BSc degree in Computer Science, Engineering or relevant field`
   },
   {
     title: 'Software Engineer - Mid Level',
