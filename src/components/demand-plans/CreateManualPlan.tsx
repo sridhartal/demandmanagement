@@ -222,7 +222,6 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
             required
           />
         </div>
-      </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -264,6 +263,7 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
+      </div>
 
       {/* Budget Section */}
       <div className="mt-6">
@@ -297,7 +297,7 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
               placeholder="80,000"
             />
           </div>
-        <div>
+          <div>
             <label className="block text-xs font-medium text-gray-600 mb-2">
               Max
             </label>
@@ -476,6 +476,8 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
           </div>
         </div>
       </div>
+    );
+  };
 
   const renderReview = () => (
     <div className="space-y-6">
