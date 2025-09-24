@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useOnboarding } from './hooks/useOnboarding';
 import { Header } from './components/layout/Header';
 import { Sidebar } from './components/layout/Sidebar';
+import { Breadcrumbs } from './components/layout/Breadcrumbs';
 import { OnboardingTooltip } from './components/onboarding/OnboardingTooltip';
 import { Dashboard } from './components/dashboard/Dashboard';
 import { CreateManualPlan } from './components/demand-plans/CreateManualPlan';
@@ -41,6 +42,33 @@ function App() {
     }
   };
 
+  const getBreadcrumbs = () => {
+    const breadcrumbMap: { [key: string]: { label: string; parent?: string } } = {
+      'demand-plans': { label: 'Demand Plans' },
+      'create-manual': { label: 'Create Manually', parent: 'demand-plans' },
+      'bulk-upload': { label: 'Bulk Upload', parent: 'demand-plans' },
+      'ai-create': { label: 'AI Assistant', parent: 'demand-plans' },
+      'approvals': { label: 'Approvals' },
+      'analytics': { label: 'Analytics & Reports' },
+      'settings': { label: 'Settings' }
+    };
+
+    const current = breadcrumbMap[activeTab];
+    if (!current) return [];
+
+    const items = [];
+    if (current.parent) {
+      const parent = breadcrumbMap[current.parent];
+      items.push({
+        label: parent.label,
+        onClick: () => setActiveTab(current.parent!)
+      });
+    }
+    items.push({ label: current.label });
+    
+    return items;
+  };
+
   const renderMainContent = () => {
     switch (activeTab) {
       case 'create-manual':
@@ -63,13 +91,14 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-50">
       <Header userEmail={mockUser.email} />
       
-      <div className="flex">
+      <div className="flex min-h-screen">
         <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
         
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-6 lg:p-8 lg:ml-0">
+          <Breadcrumbs items={getBreadcrumbs()} />
           {renderMainContent()}
         </main>
       </div>

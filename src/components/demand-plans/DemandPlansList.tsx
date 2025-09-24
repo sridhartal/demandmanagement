@@ -131,8 +131,8 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Demand Plan</h1>
-        <p className="text-gray-600">Manage and track all requisitions in your demand plan</p>
+        <h1 className="text-2xl font-bold text-gray-900">Demand Plans</h1>
+        <p className="text-gray-600">Manage and track all requisitions across your demand plans</p>
       </div>
 
       {/* CTAs */}
