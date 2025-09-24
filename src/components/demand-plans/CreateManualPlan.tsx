@@ -447,10 +447,17 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
       }
     ];
     
+    // Set default template if job description is empty
+    React.useEffect(() => {
+      if (!currentRequisition.job_description && defaultTemplates.length > 0) {
+        updateRequisition('job_description', defaultTemplates[0].content);
+      }
+    }, []);
+    
     return (
-     <div className="h-[600px] grid grid-cols-1 lg:grid-cols-2 gap-6">
+     <div className="h-[500px] flex flex-col lg:flex-row gap-4">
        {/* Left Side - Editor */}
-       <div className="flex flex-col">
+       <div className="flex flex-col lg:w-1/2">
          <div className="flex items-center justify-between mb-4">
            <h3 className="text-lg font-semibold text-gray-900">Job Description Editor</h3>
            <button className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm">
@@ -470,46 +477,48 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
        </div>
 
        {/* Right Side - Templates and AI */}
-       <div className="flex flex-col">
+       <div className="flex flex-col lg:w-1/2">
          <h3 className="text-lg font-semibold text-gray-900 mb-4">Templates & AI Enhancement</h3>
          
          {/* Templates Section */}
-         <div className="flex-1 bg-gray-50 rounded-lg p-4 mb-4 overflow-y-auto">
+         <div className="bg-gray-50 rounded-lg p-4 mb-4">
            <h4 className="font-medium text-gray-900 mb-3">Recommended Templates</h4>
-           <div className="space-y-3">
+           <div className="flex flex-wrap gap-2">
              {defaultTemplates.map((template, index) => (
-               <div key={index} className="bg-white border border-gray-200 rounded-lg p-3">
-                 <h5 className="font-medium text-gray-900 text-sm mb-2">{template.title}</h5>
-                 <p className="text-xs text-gray-700 mb-2 line-clamp-2">{template.content}</p>
-                 <button
-                   onClick={() => handleUseTemplate(template.content)}
-                   className="text-blue-600 hover:text-blue-700 text-xs font-medium"
-                 >
-                   Use This Template
-                 </button>
-               </div>
+               <button
+                 key={index}
+                 onClick={() => handleUseTemplate(template.content)}
+                 className={`px-3 py-2 rounded-full text-xs font-medium border transition-colors ${
+                   currentRequisition.job_description === template.content
+                     ? 'bg-blue-600 text-white border-blue-600'
+                     : 'bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-300'
+                 }`}
+               >
+                 {template.title}
+               </button>
              ))}
            </div>
          </div>
 
          {/* AI Enhancement Section */}
-         <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+         <div className="flex-1 bg-purple-50 border border-purple-200 rounded-lg p-4 flex flex-col">
            <h4 className="font-medium text-purple-900 mb-3 flex items-center">
              <Wand2 className="w-4 h-4 text-purple-600 mr-2" />
              AI Enhancement
            </h4>
-           <textarea
-             rows={3}
-             className="w-full px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm resize-none mb-3"
-             placeholder="Describe modifications: e.g., make it more technical, add remote work benefits..."
-           />
-           <button
-             onClick={handleAIModify}
-             className="flex items-center space-x-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm w-full justify-center"
-           >
-             <Wand2 className="w-4 h-4" />
-             <span>Enhance with AI</span>
-           </button>
+           <div className="flex-1 flex flex-col">
+             <textarea
+               className="flex-1 w-full px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm resize-none mb-3"
+               placeholder="Describe modifications: e.g., make it more technical, add remote work benefits..."
+             />
+             <button
+               onClick={handleAIModify}
+               className="flex items-center space-x-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm w-full justify-center"
+             >
+               <Wand2 className="w-4 h-4" />
+               <span>Enhance with AI</span>
+             </button>
+           </div>
          </div>
        </div>
      </div>
@@ -593,7 +602,7 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Create Position</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Create Requisition</h1>
             <p className="text-gray-600">Step-by-step wizard to create a new requisition</p>
           </div>
         </div>
@@ -608,9 +617,9 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
       </div>
 
       {/* Progress Steps */}
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center justify-center space-x-2 md:space-x-4 overflow-x-auto pb-2">
         {steps.map((step, index) => (
-          <div key={index} className="flex items-center">
+          <div key={index} className="flex items-center flex-shrink-0">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
               index <= currentStep
                 ? 'bg-blue-600 text-white'
@@ -618,13 +627,13 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
             }`}>
               {index + 1}
             </div>
-            <span className={`ml-2 font-medium ${
+            <span className={`ml-1 md:ml-2 font-medium text-sm md:text-base ${
               index <= currentStep ? 'text-gray-900' : 'text-gray-500'
             }`}>
               {step}
             </span>
             {index < steps.length - 1 && (
-              <div className={`w-12 h-px mx-4 ${
+              <div className={`w-6 md:w-12 h-px mx-2 md:mx-4 ${
                 index < currentStep ? 'bg-blue-600' : 'bg-gray-300'
               }`} />
             )}
