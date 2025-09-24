@@ -38,6 +38,14 @@ const POSITION_CATEGORIES = [
   'Product Manager'
 ];
 
+const DEFAULT_SKILLS = {
+  'Software Engineer': ['JavaScript', 'React', 'Node.js', 'SQL', 'Git'],
+  'Senior Software Engineer': ['JavaScript', 'React', 'Node.js', 'System Design', 'Leadership'],
+  'Full Stack Developer': ['JavaScript', 'React', 'Node.js', 'MongoDB', 'REST APIs'],
+  'Frontend Developer': ['JavaScript', 'React', 'CSS', 'HTML', 'TypeScript'],
+  'Backend Developer': ['Node.js', 'SQL', 'REST APIs', 'MongoDB', 'Express']
+};
+
 const JOB_DESCRIPTION_TEMPLATES = {
   'Software Engineer': {
     '0-2': 'We are looking for a Junior Software Engineer to join our dynamic team. You will work on developing and maintaining web applications using modern technologies. This role is perfect for recent graduates or developers with 0-2 years of experience who are eager to learn and grow in a collaborative environment.',
@@ -96,6 +104,17 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
 
   const updateRequisition = (field: string, value: any) => {
     setCurrentRequisition(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handlePositionTitleChange = (title: string) => {
+    updateRequisition('position_title', title);
+    
+    // Auto-populate skills based on position title
+    if (DEFAULT_SKILLS[title as keyof typeof DEFAULT_SKILLS]) {
+      const defaultSkills = DEFAULT_SKILLS[title as keyof typeof DEFAULT_SKILLS];
+      updateRequisition('mandatory_skills', [...defaultSkills]);
+      updateRequisition('optional_skills', ['']);
+    }
   };
 
   const addSkill = (skillType: 'mandatory_skills' | 'optional_skills') => {
@@ -162,7 +181,7 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
           </label>
           <select
             value={currentRequisition.position_title}
-            onChange={(e) => updateRequisition('position_title', e.target.value)}
+            onChange={(e) => handlePositionTitleChange(e.target.value)}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             required
           >
@@ -203,6 +222,7 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
             required
           />
         </div>
+      </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -245,43 +265,51 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
           />
         </div>
 
+      {/* Budget Section */}
+      <div className="mt-6">
+        <label className="block text-sm font-medium text-gray-700 mb-4">
+          Budget (Annual Salary)
+        </label>
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-2">
+              Min
+            </label>
+            <input
+              type="number"
+              min="0"
+              value={currentRequisition.min_salary}
+              onChange={(e) => updateRequisition('min_salary', parseInt(e.target.value))}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="60,000"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-2">
+              Mid
+            </label>
+            <input
+              type="number"
+              min="0"
+              value={currentRequisition.mid_salary}
+              onChange={(e) => updateRequisition('mid_salary', parseInt(e.target.value))}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="80,000"
+            />
+          </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Min Salary
-          </label>
-          <input
-            type="number"
-            min="0"
-            value={currentRequisition.min_salary}
-            onChange={(e) => updateRequisition('min_salary', parseInt(e.target.value))}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Mid Salary
-          </label>
-          <input
-            type="number"
-            min="0"
-            value={currentRequisition.mid_salary}
-            onChange={(e) => updateRequisition('mid_salary', parseInt(e.target.value))}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Max Salary
-          </label>
-          <input
-            type="number"
-            min="0"
-            value={currentRequisition.max_salary}
-            onChange={(e) => updateRequisition('max_salary', parseInt(e.target.value))}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
+            <label className="block text-xs font-medium text-gray-600 mb-2">
+              Max
+            </label>
+            <input
+              type="number"
+              min="0"
+              value={currentRequisition.max_salary}
+              onChange={(e) => updateRequisition('max_salary', parseInt(e.target.value))}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="100,000"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -289,69 +317,71 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
 
   const renderSkills = () => (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Mandatory Skills * (Max 7)
-          </label>
-          <div className="space-y-3">
-            {currentRequisition.mandatory_skills.map((skill, skillIndex) => (
-              <div key={skillIndex} className="flex space-x-2">
-                <input
-                  type="text"
-                  value={skill}
-                  onChange={(e) => updateSkill('mandatory_skills', skillIndex, e.target.value)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter skill"
-                />
-                <button
-                  onClick={() => removeSkill('mandatory_skills', skillIndex)}
-                  className="text-red-600 hover:text-red-700 transition-colors p-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
-            {currentRequisition.mandatory_skills.length < 7 && (
+      {/* Mandatory Skills */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-4">
+          Mandatory Skills * (Max 7)
+        </label>
+        <div className="space-y-3">
+          {currentRequisition.mandatory_skills.map((skill, skillIndex) => (
+            <div key={skillIndex} className="flex space-x-2">
+              <input
+                type="text"
+                value={skill}
+                onChange={(e) => updateSkill('mandatory_skills', skillIndex, e.target.value)}
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Enter skill"
+              />
               <button
-                onClick={() => addSkill('mandatory_skills')}
-                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                onClick={() => removeSkill('mandatory_skills', skillIndex)}
+                className="text-red-600 hover:text-red-700 transition-colors p-2 hover:bg-red-50 rounded-lg"
               >
-                + Add Mandatory Skill
+                <Trash2 className="w-4 h-4" />
               </button>
-            )}
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Optional Skills
-          </label>
-          <div className="space-y-3">
-            {currentRequisition.optional_skills.map((skill, skillIndex) => (
-              <div key={skillIndex} className="flex space-x-2">
-                <input
-                  type="text"
-                  value={skill}
-                  onChange={(e) => updateSkill('optional_skills', skillIndex, e.target.value)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter skill"
-                />
-                <button
-                  onClick={() => removeSkill('optional_skills', skillIndex)}
-                  className="text-red-600 hover:text-red-700 transition-colors p-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
+            </div>
+          ))}
+          {currentRequisition.mandatory_skills.length < 7 && (
             <button
-              onClick={() => addSkill('optional_skills')}
-              className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+              onClick={() => addSkill('mandatory_skills')}
+              className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 text-sm font-medium hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors"
             >
-              + Add Optional Skill
+              <Plus className="w-4 h-4" />
+              <span>Add Mandatory Skill</span>
             </button>
-          </div>
+          )}
+        </div>
+      </div>
+
+      {/* Optional Skills */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-4">
+          Optional Skills
+        </label>
+        <div className="space-y-3">
+          {currentRequisition.optional_skills.map((skill, skillIndex) => (
+            <div key={skillIndex} className="flex space-x-2">
+              <input
+                type="text"
+                value={skill}
+                onChange={(e) => updateSkill('optional_skills', skillIndex, e.target.value)}
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Enter skill"
+              />
+              <button
+                onClick={() => removeSkill('optional_skills', skillIndex)}
+                className="text-red-600 hover:text-red-700 transition-colors p-2 hover:bg-red-50 rounded-lg"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+          <button
+            onClick={() => addSkill('optional_skills')}
+            className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 text-sm font-medium hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Optional Skill</span>
+          </button>
         </div>
       </div>
     </div>
@@ -380,80 +410,72 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
     return (
       <div className="space-y-6">
         {/* Split Screen Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-96">
           {/* Left Side - Editor */}
-          <div className="space-y-4">
+          <div className="flex flex-col space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900">Job Description Editor</h3>
-              <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+              <button className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm">
                 <Upload className="w-4 h-4" />
                 <span>Upload Template</span>
               </button>
             </div>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Job Description
-              </label>
+            <div className="flex-1">
               <textarea
                 value={currentRequisition.job_description}
                 onChange={(e) => updateRequisition('job_description', e.target.value)}
-                rows={12}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full h-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
                 placeholder="Write or paste your job description here..."
               />
             </div>
           </div>
 
-          {/* Right Side - Templates */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Recommended Templates</h3>
-            <div className="space-y-3 max-h-96 overflow-y-auto">
-              {defaultTemplates.map((template, index) => (
-                <div key={index} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                  <h4 className="font-medium text-gray-900 mb-2">{template.title}</h4>
-                  <p className="text-sm text-gray-700 mb-3 line-clamp-3">{template.content}</p>
-                  <button
-                    onClick={() => handleUseTemplate(template.content)}
-                    className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                  >
-                    Use This Template
-                  </button>
-                </div>
-              ))}
+          {/* Right Side - Templates and AI */}
+          <div className="flex flex-col space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900">Templates & AI Enhancement</h3>
+            
+            {/* Templates Section */}
+            <div className="flex-1 bg-gray-50 rounded-lg p-4 overflow-y-auto">
+              <h4 className="font-medium text-gray-900 mb-3">Recommended Templates</h4>
+              <div className="space-y-3">
+                {defaultTemplates.map((template, index) => (
+                  <div key={index} className="bg-white border border-gray-200 rounded-lg p-3">
+                    <h5 className="font-medium text-gray-900 text-sm mb-2">{template.title}</h5>
+                    <p className="text-xs text-gray-700 mb-2 line-clamp-2">{template.content}</p>
+                    <button
+                      onClick={() => handleUseTemplate(template.content)}
+                      className="text-blue-600 hover:text-blue-700 text-xs font-medium"
+                    >
+                      Use This Template
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        </div>
 
-        {/* AI Enhancement Section */}
-        <div className="bg-purple-50 border border-purple-200 rounded-xl p-6">
-          <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
-            <Wand2 className="w-5 h-5 text-purple-600 mr-2" />
-            AI Enhancement
-          </h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Describe modifications you'd like to make
-              </label>
+            {/* AI Enhancement Section */}
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+              <h4 className="font-medium text-purple-900 mb-3 flex items-center">
+                <Wand2 className="w-4 h-4 text-purple-600 mr-2" />
+                AI Enhancement
+              </h4>
               <textarea
                 rows={3}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                placeholder="e.g., Make it more technical, add remote work benefits, emphasize team collaboration..."
+                className="w-full px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm resize-none"
+                placeholder="Describe modifications: e.g., make it more technical, add remote work benefits..."
               />
+              <button
+                onClick={handleAIModify}
+                className="mt-2 flex items-center space-x-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm"
+              >
+                <Wand2 className="w-4 h-4" />
+                <span>Enhance with AI</span>
+              </button>
             </div>
-            <button
-              onClick={handleAIModify}
-              className="flex items-center space-x-2 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors"
-            >
-              <Wand2 className="w-4 h-4" />
-              <span>Enhance with AI</span>
-            </button>
           </div>
         </div>
       </div>
-    );
-  };
 
   const renderReview = () => (
     <div className="space-y-6">
