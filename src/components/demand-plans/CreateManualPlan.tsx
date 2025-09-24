@@ -322,6 +322,29 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
         <label className="block text-sm font-medium text-gray-700 mb-4">
           Mandatory Skills * (Max 7)
         </label>
+       
+       {/* Display current skills as pills */}
+       {currentRequisition.mandatory_skills.filter(skill => skill.trim()).length > 0 && (
+         <div className="mb-4">
+           <div className="flex flex-wrap gap-2">
+             {currentRequisition.mandatory_skills.filter(skill => skill.trim()).map((skill, index) => (
+               <span
+                 key={index}
+                 className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800"
+               >
+                 {skill}
+                 <button
+                   onClick={() => removeSkill('mandatory_skills', currentRequisition.mandatory_skills.indexOf(skill))}
+                   className="ml-2 text-blue-600 hover:text-blue-800"
+                 >
+                   ×
+                 </button>
+               </span>
+             ))}
+           </div>
+         </div>
+       )}
+       
         <div className="space-y-3">
           {currentRequisition.mandatory_skills.map((skill, skillIndex) => (
             <div key={skillIndex} className="flex space-x-2">
@@ -357,6 +380,29 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
         <label className="block text-sm font-medium text-gray-700 mb-4">
           Optional Skills
         </label>
+       
+       {/* Display current optional skills as pills */}
+       {currentRequisition.optional_skills.filter(skill => skill.trim()).length > 0 && (
+         <div className="mb-4">
+           <div className="flex flex-wrap gap-2">
+             {currentRequisition.optional_skills.filter(skill => skill.trim()).map((skill, index) => (
+               <span
+                 key={index}
+                 className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700"
+               >
+                 {skill}
+                 <button
+                   onClick={() => removeSkill('optional_skills', currentRequisition.optional_skills.indexOf(skill))}
+                   className="ml-2 text-gray-600 hover:text-gray-800"
+                 >
+                   ×
+                 </button>
+               </span>
+             ))}
+           </div>
+         </div>
+       )}
+       
         <div className="space-y-3">
           {currentRequisition.optional_skills.map((skill, skillIndex) => (
             <div key={skillIndex} className="flex space-x-2">
@@ -408,74 +454,71 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
     ];
     
     return (
-      <div className="space-y-6">
-        {/* Split Screen Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-96">
-          {/* Left Side - Editor */}
-          <div className="flex flex-col space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">Job Description Editor</h3>
-              <button className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm">
-                <Upload className="w-4 h-4" />
-                <span>Upload Template</span>
-              </button>
-            </div>
-            
-            <div className="flex-1">
-              <textarea
-                value={currentRequisition.job_description}
-                onChange={(e) => updateRequisition('job_description', e.target.value)}
-                className="w-full h-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                placeholder="Write or paste your job description here..."
-              />
-            </div>
-          </div>
+     <div className="h-[600px] grid grid-cols-1 lg:grid-cols-2 gap-6">
+       {/* Left Side - Editor */}
+       <div className="flex flex-col">
+         <div className="flex items-center justify-between mb-4">
+           <h3 className="text-lg font-semibold text-gray-900">Job Description Editor</h3>
+           <button className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm">
+             <Upload className="w-4 h-4" />
+             <span>Upload Template</span>
+           </button>
+         </div>
+         
+         <div className="flex-1">
+           <textarea
+             value={currentRequisition.job_description}
+             onChange={(e) => updateRequisition('job_description', e.target.value)}
+             className="w-full h-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+             placeholder="Write or paste your job description here..."
+           />
+         </div>
+       </div>
 
-          {/* Right Side - Templates and AI */}
-          <div className="flex flex-col space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Templates & AI Enhancement</h3>
-            
-            {/* Templates Section */}
-            <div className="flex-1 bg-gray-50 rounded-lg p-4 overflow-y-auto">
-              <h4 className="font-medium text-gray-900 mb-3">Recommended Templates</h4>
-              <div className="space-y-3">
-                {defaultTemplates.map((template, index) => (
-                  <div key={index} className="bg-white border border-gray-200 rounded-lg p-3">
-                    <h5 className="font-medium text-gray-900 text-sm mb-2">{template.title}</h5>
-                    <p className="text-xs text-gray-700 mb-2 line-clamp-2">{template.content}</p>
-                    <button
-                      onClick={() => handleUseTemplate(template.content)}
-                      className="text-blue-600 hover:text-blue-700 text-xs font-medium"
-                    >
-                      Use This Template
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
+       {/* Right Side - Templates and AI */}
+       <div className="flex flex-col">
+         <h3 className="text-lg font-semibold text-gray-900 mb-4">Templates & AI Enhancement</h3>
+         
+         {/* Templates Section */}
+         <div className="flex-1 bg-gray-50 rounded-lg p-4 mb-4 overflow-y-auto">
+           <h4 className="font-medium text-gray-900 mb-3">Recommended Templates</h4>
+           <div className="space-y-3">
+             {defaultTemplates.map((template, index) => (
+               <div key={index} className="bg-white border border-gray-200 rounded-lg p-3">
+                 <h5 className="font-medium text-gray-900 text-sm mb-2">{template.title}</h5>
+                 <p className="text-xs text-gray-700 mb-2 line-clamp-2">{template.content}</p>
+                 <button
+                   onClick={() => handleUseTemplate(template.content)}
+                   className="text-blue-600 hover:text-blue-700 text-xs font-medium"
+                 >
+                   Use This Template
+                 </button>
+               </div>
+             ))}
+           </div>
+         </div>
 
-            {/* AI Enhancement Section */}
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-              <h4 className="font-medium text-purple-900 mb-3 flex items-center">
-                <Wand2 className="w-4 h-4 text-purple-600 mr-2" />
-                AI Enhancement
-              </h4>
-              <textarea
-                rows={3}
-                className="w-full px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm resize-none"
-                placeholder="Describe modifications: e.g., make it more technical, add remote work benefits..."
-              />
-              <button
-                onClick={handleAIModify}
-                className="mt-2 flex items-center space-x-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm"
-              >
-                <Wand2 className="w-4 h-4" />
-                <span>Enhance with AI</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+         {/* AI Enhancement Section */}
+         <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+           <h4 className="font-medium text-purple-900 mb-3 flex items-center">
+             <Wand2 className="w-4 h-4 text-purple-600 mr-2" />
+             AI Enhancement
+           </h4>
+           <textarea
+             rows={3}
+             className="w-full px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm resize-none mb-3"
+             placeholder="Describe modifications: e.g., make it more technical, add remote work benefits..."
+           />
+           <button
+             onClick={handleAIModify}
+             className="flex items-center space-x-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm w-full justify-center"
+           >
+             <Wand2 className="w-4 h-4" />
+             <span>Enhance with AI</span>
+           </button>
+         </div>
+       </div>
+     </div>
     );
   };
 
