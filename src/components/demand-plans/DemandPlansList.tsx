@@ -305,7 +305,7 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
                 <th className="text-left px-6 py-4 text-sm font-medium text-gray-700">Location</th>
                 <th className="text-left px-6 py-4 text-sm font-medium text-gray-700">Positions</th>
                 <th className="text-left px-6 py-4 text-sm font-medium text-gray-700">Experience</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-gray-700">Salary Range</th>
+                <th className="text-left px-6 py-4 text-sm font-medium text-gray-700">Budget Range</th>
                 <th className="text-left px-6 py-4 text-sm font-medium text-gray-700">Status</th>
                 <th className="text-left px-6 py-4 text-sm font-medium text-gray-700">Actions</th>
               </tr>

@@ -408,7 +408,7 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">
-              Salary Range (USD)
+              Budget Details
             </label>
             <div className="grid grid-cols-3 gap-2">
               <div>
@@ -445,7 +445,7 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
                 />
               </div>
             </div>
-            <p className="mt-1 text-xs text-gray-500">Auto-suggested based on position and experience</p>
+            <p className="mt-1 text-xs text-gray-500">Budget range auto-suggested based on position and experience</p>
           </div>
         </div>
       </div>
@@ -803,9 +803,9 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
             <p className="text-gray-900">{currentRequisition.min_experience}-{currentRequisition.max_experience} years</p>
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-700">Salary Range</p>
+            <p className="text-sm font-medium text-gray-700">Budget Range</p>
             <p className="text-gray-900">
-              ${currentRequisition.min_salary.toLocaleString()} - ${currentRequisition.max_salary.toLocaleString()}
+              {currentRequisition.min_salary.toLocaleString()} - {currentRequisition.max_salary.toLocaleString()}
             </p>
           </div>
           <div>

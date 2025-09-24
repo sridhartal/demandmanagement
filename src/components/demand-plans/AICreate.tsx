@@ -389,8 +389,8 @@ export function AICreate({ onBack }: AICreateProps) {
                 <div className="mt-4">
                   <p className="text-sm text-gray-600 mb-2">Salary Range</p>
                   <p className="text-gray-900 text-sm">
-                    ${req.min_salary.toLocaleString()} - ${req.max_salary.toLocaleString()} 
-                    (Mid: ${req.mid_salary.toLocaleString()})
+                    {req.min_salary.toLocaleString()} - {req.max_salary.toLocaleString()} 
+                    (Mid: {req.mid_salary.toLocaleString()})
                   </p>
                 </div>
               </div>
