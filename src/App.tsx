@@ -44,7 +44,7 @@ function App() {
 
   const getBreadcrumbs = () => {
     const breadcrumbMap: { [key: string]: { label: string; parent?: string } } = {
-      'demand-plans': { label: 'Demand Plans' },
+      'demand-plans': { label: 'Dashboard' },
       'create-manual': { label: 'Create Manually', parent: 'demand-plans' },
       'bulk-upload': { label: 'Bulk Upload', parent: 'demand-plans' },
       'ai-create': { label: 'AI Assistant', parent: 'demand-plans' },
