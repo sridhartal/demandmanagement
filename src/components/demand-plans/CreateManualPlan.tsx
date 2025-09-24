@@ -74,6 +74,25 @@ const JOB_DESCRIPTION_TEMPLATES = {
   }
 };
 
+const DEFAULT_TEMPLATES = [
+  {
+    title: 'Software Engineer - Entry Level',
+    content: 'We are looking for a Junior Software Engineer to join our dynamic team. You will work on developing and maintaining web applications using modern technologies. This role is perfect for recent graduates or developers with 0-2 years of experience who are eager to learn and grow in a collaborative environment.'
+  },
+  {
+    title: 'Software Engineer - Mid Level',
+    content: 'We are seeking a Software Engineer with 2-5 years of experience to develop scalable web applications. You will collaborate with cross-functional teams to design, develop, and deploy high-quality software solutions using modern frameworks and best practices.'
+  },
+  {
+    title: 'Senior Software Engineer',
+    content: 'We are looking for an experienced Senior Software Engineer with 5+ years of experience to lead technical initiatives and mentor junior developers. You will architect and implement complex software solutions while ensuring code quality and system reliability.'
+  },
+  {
+    title: 'Full Stack Developer',
+    content: 'We are seeking a Full Stack Developer to work on both frontend and backend development. You will build responsive user interfaces and robust server-side applications using modern web technologies like React, Node.js, and databases.'
+  }
+];
+
 export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [currentRequisition, setCurrentRequisition] = useState<Requisition>({
@@ -94,6 +113,14 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
 
   const [selectedTemplate, setSelectedTemplate] = useState('');
   const [isEditingDescription, setIsEditingDescription] = useState(false);
+
+  // Set default template when on job description step and description is empty
+  React.useEffect(() => {
+    if (currentStep === 2 && !currentRequisition.job_description && DEFAULT_TEMPLATES.length > 0) {
+      updateRequisition('job_description', DEFAULT_TEMPLATES[0].content);
+      setSelectedTemplate(DEFAULT_TEMPLATES[0].content);
+    }
+  }, [currentStep, currentRequisition.job_description]);
 
   const steps = [
     'Basic Details',
@@ -428,32 +455,6 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
   );
 
   const renderJobDescription = () => {
-    const defaultTemplates = [
-      {
-        title: 'Software Engineer - Entry Level',
-        content: 'We are looking for a Junior Software Engineer to join our dynamic team. You will work on developing and maintaining web applications using modern technologies. This role is perfect for recent graduates or developers with 0-2 years of experience who are eager to learn and grow in a collaborative environment.'
-      },
-      {
-        title: 'Software Engineer - Mid Level',
-        content: 'We are seeking a Software Engineer with 2-5 years of experience to develop scalable web applications. You will collaborate with cross-functional teams to design, develop, and deploy high-quality software solutions using modern frameworks and best practices.'
-      },
-      {
-        title: 'Senior Software Engineer',
-        content: 'We are looking for an experienced Senior Software Engineer with 5+ years of experience to lead technical initiatives and mentor junior developers. You will architect and implement complex software solutions while ensuring code quality and system reliability.'
-      },
-      {
-        title: 'Full Stack Developer',
-        content: 'We are seeking a Full Stack Developer to work on both frontend and backend development. You will build responsive user interfaces and robust server-side applications using modern web technologies like React, Node.js, and databases.'
-      }
-    ];
-    
-    // Set default template if job description is empty
-    React.useEffect(() => {
-      if (!currentRequisition.job_description && defaultTemplates.length > 0) {
-        updateRequisition('job_description', defaultTemplates[0].content);
-      }
-    }, []);
-    
     return (
      <div className="h-[500px] flex flex-col lg:flex-row gap-4">
        {/* Left Side - Editor */}
@@ -484,7 +485,7 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
          <div className="bg-gray-50 rounded-lg p-4 mb-4">
            <h4 className="font-medium text-gray-900 mb-3">Recommended Templates</h4>
            <div className="flex flex-wrap gap-2">
-             {defaultTemplates.map((template, index) => (
+             {DEFAULT_TEMPLATES.map((template, index) => (
                <button
                  key={index}
                  onClick={() => handleUseTemplate(template.content)}
