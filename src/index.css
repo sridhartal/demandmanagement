@@ -155,18 +155,6 @@
   }
   
   /* Animation Classes */
-  .fade-in {
-    @apply animate-in fade-in duration-200;
-  }
-  
-  .slide-in-right {
-    @apply animate-in slide-in-from-right duration-300;
-  }
-  
-  .slide-in-left {
-    @apply animate-in slide-in-from-left duration-300;
-  }
-  
   /* Loading States */
   .loading-spinner {
     @apply animate-spin rounded-full border-2 border-slate-200 border-t-indigo-600;
