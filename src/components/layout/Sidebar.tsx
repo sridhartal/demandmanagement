@@ -11,7 +11,11 @@ import {
   Plus,
   List,
   Menu,
-  X
+  X,
+  Building2,
+  CheckCircle,
+  Clock,
+  TrendingUp
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -25,6 +29,7 @@ interface MenuItem {
   icon: React.ComponentType<any>;
   children?: MenuItem[];
   badge?: number;
+  badgeColor?: string;
 }
 
 export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
@@ -33,31 +38,32 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
 
   const menuItems: MenuItem[] = [
     {
-      id: 'demand-plan',
-      label: 'Demand Plan',
+      id: 'demand-plans',
+      label: 'Positions',
       icon: FileText,
       children: [
-        { id: 'demand-plans', label: 'Dashboard', icon: List },
-        { id: 'create-manual', label: 'Create Manually', icon: Plus },
-        { id: 'bulk-upload', label: 'Bulk Upload', icon: Upload },
+        { id: 'demand-plans', label: 'All Positions', icon: List },
+        { id: 'create-manual', label: 'Create Position', icon: Plus },
+        { id: 'bulk-upload', label: 'Bulk Import', icon: Upload },
         { id: 'ai-create', label: 'AI Assistant', icon: Bot }
       ]
     },
     {
       id: 'approvals',
       label: 'Approvals',
-      icon: Users,
-      badge: 4
+      icon: CheckCircle,
+      badge: 4,
+      badgeColor: 'bg-amber-100 text-amber-700'
     },
     {
       id: 'analytics',
-      label: 'Analytics & Reports',
-      icon: BarChart3
+      label: 'Analytics',
+      icon: TrendingUp
     },
     {
       id: 'org-chart',
-      label: 'Org Chart Builder',
-      icon: Users
+      label: 'Organization',
+      icon: Building2
     },
     {
       id: 'settings',
@@ -98,32 +104,32 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
     const IconComponent = item.icon;
 
     return (
-      <div key={item.id}>
+      <div key={item.id} className="mb-1">
         <button
           onClick={() => handleItemClick(item.id, hasChildren)}
-          className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 group ${
-            level === 0 ? 'mb-1' : 'mb-0.5 ml-4'
+          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-all duration-200 group ${
+            level === 0 ? '' : 'ml-6'
           } ${
             isActive && !hasChildren
-              ? 'bg-blue-600 text-white shadow-md'
+              ? 'bg-indigo-50 text-indigo-700 border-r-2 border-indigo-600 font-medium'
               : isActive && hasChildren
-              ? 'bg-blue-50 text-blue-700 border border-blue-200'
-              : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+              ? 'bg-slate-100 text-slate-900 font-medium'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
           <div className="flex items-center space-x-3">
             <IconComponent className={`w-5 h-5 ${
               level === 0 ? '' : 'w-4 h-4'
             } ${
-              isActive && !hasChildren ? 'text-white' : 'text-gray-500 group-hover:text-gray-700'
+              isActive && !hasChildren ? 'text-indigo-600' : 'text-slate-500 group-hover:text-slate-700'
             }`} />
-            <span className={`font-medium ${
-              level === 0 ? 'text-sm' : 'text-xs'
-            }`}>
+            <span className={`text-sm ${level === 0 ? 'font-medium' : ''}`}>
               {item.label}
             </span>
             {item.badge && (
-              <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full min-w-[20px] text-center">
+              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                item.badgeColor || 'bg-red-100 text-red-700'
+              }`}>
                 {item.badge}
               </span>
             )}
@@ -132,16 +138,16 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
           {hasChildren && (
             <div className="flex items-center">
               {isExpanded ? (
-                <ChevronDown className="w-4 h-4 text-gray-400" />
+                <ChevronDown className="w-4 h-4 text-slate-400" />
               ) : (
-                <ChevronRight className="w-4 h-4 text-gray-400" />
+                <ChevronRight className="w-4 h-4 text-slate-400" />
               )}
             </div>
           )}
         </button>
 
         {hasChildren && isExpanded && (
-          <div className="mt-1 space-y-0.5">
+          <div className="mt-1 space-y-1">
             {item.children!.map(child => renderMenuItem(child, level + 1))}
           </div>
         )}
@@ -154,53 +160,53 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
       {/* Mobile Menu Button */}
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-md border border-gray-200"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-medium border border-slate-200 focus-ring"
       >
         {isMobileMenuOpen ? (
-          <X className="w-6 h-6 text-gray-600" />
+          <X className="w-5 h-5 text-slate-600" />
         ) : (
-          <Menu className="w-6 h-6 text-gray-600" />
+          <Menu className="w-5 h-5 text-slate-600" />
         )}
       </button>
 
       {/* Mobile Overlay */}
       {isMobileMenuOpen && (
         <div 
-          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+          className="lg:hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside className={`
-        fixed lg:static inset-y-0 left-0 z-40 w-72 bg-white border-r border-gray-200 
+        fixed lg:static inset-y-0 left-0 z-40 w-72 bg-white border-r border-slate-200 
         transform transition-transform duration-300 ease-in-out
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="p-6 border-b border-gray-200">
+          {/* Sidebar Header */}
+          <div className="p-6 border-b border-slate-200">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <FileText className="w-5 h-5 text-white" />
+              <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-lg flex items-center justify-center shadow-sm">
+                <Building2 className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h2 className="font-semibold text-gray-900">Navigation</h2>
-                <p className="text-xs text-gray-500">Demand Management</p>
+                <h2 className="font-semibold text-slate-900">Navigation</h2>
+                <p className="text-xs text-slate-500">Talent Management</p>
               </div>
             </div>
           </div>
 
           {/* Navigation Menu */}
-          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
             {menuItems.map(item => renderMenuItem(item))}
           </nav>
 
-          {/* Footer */}
-          <div className="p-4 border-t border-gray-200">
-            <div className="text-xs text-gray-500 text-center">
-              <p>Need help?</p>
-              <button className="text-blue-600 hover:text-blue-700 font-medium">
+          {/* Sidebar Footer */}
+          <div className="p-4 border-t border-slate-200 bg-slate-50">
+            <div className="text-center">
+              <p className="text-xs text-slate-500 mb-2">Need assistance?</p>
+              <button className="text-xs text-indigo-600 hover:text-indigo-700 font-medium transition-colors">
                 Contact Support
               </button>
             </div>

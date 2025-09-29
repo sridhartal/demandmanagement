@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Clock, CheckCircle, XCircle, Eye, Edit, Trash2, Plus, Search, Filter, Download, Upload, Bot, AlertCircle, Users } from 'lucide-react';
+import { FileText, Clock, CheckCircle, XCircle, Eye, Edit, Trash2, Plus, Search, Filter, Download, Upload, Bot, AlertCircle, Users, TrendingUp } from 'lucide-react';
 import { DemandPlan } from '../../types';
 
 interface DemandPlansListProps {
@@ -83,27 +83,26 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'active':
-        return <CheckCircle className="w-5 h-5 text-green-600" />;
+        return <CheckCircle className="w-4 h-4 text-emerald-600" />;
       case 'filled':
-        return <CheckCircle className="w-5 h-5 text-blue-600" />;
+        return <CheckCircle className="w-4 h-4 text-blue-600" />;
       case 'cancelled':
-        return <XCircle className="w-5 h-5 text-red-600" />;
+        return <XCircle className="w-4 h-4 text-red-600" />;
       default:
-        return <FileText className="w-5 h-5 text-gray-600" />;
+        return <FileText className="w-4 h-4 text-slate-600" />;
     }
   };
 
   const getStatusBadge = (status: string) => {
-    const baseClasses = "px-3 py-1 rounded-full text-xs font-medium";
     switch (status) {
       case 'active':
-        return `${baseClasses} bg-green-100 text-green-800`;
+        return 'badge badge-success';
       case 'filled':
-        return `${baseClasses} bg-blue-100 text-blue-800`;
+        return 'badge badge-info';
       case 'cancelled':
-        return `${baseClasses} bg-red-100 text-red-800`;
+        return 'badge badge-error';
       default:
-        return `${baseClasses} bg-gray-100 text-gray-800`;
+        return 'badge badge-neutral';
     }
   };
 
@@ -128,145 +127,161 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 fade-in">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600">Manage and track all requisitions across your demand plans</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-slate-900">Position Dashboard</h1>
+          <p className="text-slate-600 mt-1">Manage and track all open positions and requisitions</p>
+        </div>
+        
+        <div className="flex items-center space-x-3">
+          <button className="btn btn-secondary btn-md">
+            <Download className="w-4 h-4" />
+            Export
+          </button>
+          <button 
+            onClick={() => onNavigate('create-manual')}
+            className="btn btn-primary btn-md"
+          >
+            <Plus className="w-4 h-4" />
+            New Position
+          </button>
+        </div>
       </div>
 
-      {/* CTAs */}
+      {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <button
           onClick={() => onNavigate('create-manual')}
-          className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-200 text-left group"
+          className="card card-hover p-6 text-left group transition-all duration-200 hover:shadow-medium"
         >
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-              <Plus className="w-6 h-6 text-blue-600" />
+            <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center group-hover:bg-indigo-200 transition-colors">
+              <Plus className="w-6 h-6 text-indigo-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">Add New Requisition</h3>
-              <p className="text-gray-600 text-sm">Create a new position manually</p>
+              <h3 className="font-semibold text-slate-900 group-hover:text-indigo-700 transition-colors">Create Position</h3>
+              <p className="text-slate-600 text-sm mt-0.5">Add a new job requisition manually</p>
             </div>
           </div>
         </button>
 
         <button
           onClick={() => onNavigate('bulk-upload')}
-          className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-200 text-left group"
+          className="card card-hover p-6 text-left group transition-all duration-200 hover:shadow-medium"
         >
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
-              <Upload className="w-6 h-6 text-green-600" />
+            <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center group-hover:bg-emerald-200 transition-colors">
+              <Upload className="w-6 h-6 text-emerald-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">Bulk Upload</h3>
-              <p className="text-gray-600 text-sm">Upload multiple requisitions at once</p>
+              <h3 className="font-semibold text-slate-900 group-hover:text-emerald-700 transition-colors">Bulk Import</h3>
+              <p className="text-slate-600 text-sm mt-0.5">Upload multiple positions at once</p>
             </div>
           </div>
         </button>
 
         <button
           onClick={() => onNavigate('ai-create')}
-          className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-200 text-left group"
+          className="card card-hover p-6 text-left group transition-all duration-200 hover:shadow-medium"
         >
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+            <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-xl flex items-center justify-center group-hover:from-purple-200 group-hover:to-indigo-200 transition-all">
               <Bot className="w-6 h-6 text-purple-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">AI Create</h3>
-              <p className="text-gray-600 text-sm">Describe your needs in natural language</p>
+              <h3 className="font-semibold text-slate-900 group-hover:text-purple-700 transition-colors">AI Assistant</h3>
+              <p className="text-slate-600 text-sm mt-0.5">Describe your needs in natural language</p>
             </div>
           </div>
         </button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+        <div className="card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm font-medium">Total Requisitions</p>
-              <p className="text-2xl font-bold text-gray-900">12</p>
+              <p className="text-slate-600 text-sm font-medium">Total Positions</p>
+              <p className="text-2xl font-semibold text-slate-900 mt-1">12</p>
             </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <FileText className="w-6 h-6 text-blue-600" />
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <FileText className="w-5 h-5 text-blue-600" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm font-medium">In Draft</p>
-              <p className="text-2xl font-bold text-gray-900">3</p>
+              <p className="text-slate-600 text-sm font-medium">In Draft</p>
+              <p className="text-2xl font-semibold text-slate-900 mt-1">3</p>
             </div>
-            <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-              <Edit className="w-6 h-6 text-gray-600" />
+            <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
+              <Edit className="w-5 h-5 text-slate-600" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm font-medium">Pending Approval</p>
-              <p className="text-2xl font-bold text-amber-600">4</p>
+              <p className="text-slate-600 text-sm font-medium">Pending Approval</p>
+              <p className="text-2xl font-semibold text-amber-600 mt-1">4</p>
             </div>
-            <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
-              <Clock className="w-6 h-6 text-amber-600" />
+            <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+              <Clock className="w-5 h-5 text-amber-600" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm font-medium">Changes Requested</p>
-              <p className="text-2xl font-bold text-red-600">2</p>
+              <p className="text-slate-600 text-sm font-medium">Changes Requested</p>
+              <p className="text-2xl font-semibold text-red-600 mt-1">2</p>
             </div>
-            <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-              <AlertCircle className="w-6 h-6 text-red-600" />
+            <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+              <AlertCircle className="w-5 h-5 text-red-600" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm font-medium">Approved</p>
-              <p className="text-2xl font-bold text-green-600">3</p>
+              <p className="text-slate-600 text-sm font-medium">Approved</p>
+              <p className="text-2xl font-semibold text-emerald-600 mt-1">3</p>
             </div>
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <CheckCircle className="w-6 h-6 text-green-600" />
+            <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+              <CheckCircle className="w-5 h-5 text-emerald-600" />
             </div>
           </div>
         </div>
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0 md:space-x-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+      <div className="card p-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0 lg:space-x-4">
+          <div className="flex-1 relative max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search requisitions..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Search positions..."
+              className="form-input pl-10"
             />
           </div>
           
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
-              <Filter className="w-4 h-4 text-gray-500" />
+              <Filter className="w-4 h-4 text-slate-500" />
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="form-select"
               >
                 <option value="all">All Status</option>
                 <option value="active">Active</option>
@@ -278,69 +293,72 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="form-select"
             >
               <option value="created_at">Sort by Date</option>
               <option value="position_title">Sort by Position</option>
               <option value="status">Sort by Status</option>
-              <option value="positions">Sort by Positions</option>
+              <option value="positions">Sort by Count</option>
             </select>
-            
-            <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-              <Download className="w-4 h-4" />
-              <span>Export</span>
-            </button>
           </div>
         </div>
       </div>
 
-      {/* Requisitions Table */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      {/* Positions Table */}
+      <div className="card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+          <table className="table">
+            <thead>
               <tr>
-                <th className="text-left px-6 py-4 text-sm font-medium text-gray-700">Position Title</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-gray-700">Category</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-gray-700">Location</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-gray-700">Positions</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-gray-700">Experience</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-gray-700">Budget Range</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-gray-700">Status</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-gray-700">Actions</th>
+                <th>Position</th>
+                <th>Category</th>
+                <th>Location</th>
+                <th>Count</th>
+                <th>Experience</th>
+                <th>Budget Range</th>
+                <th>Status</th>
+                <th>Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody>
               {sortedRequisitions.map((req) => (
-                <tr key={req.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-gray-900">{req.position_title}</div>
+                <tr key={req.id} className="table-row-hover">
+                  <td>
+                    <div className="flex items-center space-x-3">
+                      {getStatusIcon(req.status)}
+                      <div>
+                        <div className="font-medium text-slate-900">{req.position_title}</div>
+                        <div className="text-sm text-slate-500">
+                          Created {new Date(req.created_at).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </div>
                   </td>
-                  <td className="px-6 py-4 text-gray-600">{req.position_category}</td>
-                  <td className="px-6 py-4 text-gray-600">{req.location}</td>
-                  <td className="px-6 py-4">
-                    <span className="font-medium text-gray-900">{req.number_of_positions}</span>
+                  <td className="text-slate-600">{req.position_category}</td>
+                  <td className="text-slate-600">{req.location}</td>
+                  <td>
+                    <span className="font-semibold text-slate-900">{req.number_of_positions}</span>
                   </td>
-                  <td className="px-6 py-4 text-gray-600">
+                  <td className="text-slate-600">
                     {req.min_experience}-{req.max_experience} years
                   </td>
-                  <td className="px-6 py-4 text-gray-600">
+                  <td className="text-slate-600">
                     {req.min_salary.toLocaleString()} - {req.max_salary.toLocaleString()}
                   </td>
-                  <td className="px-6 py-4">
+                  <td>
                     <span className={getStatusBadge(req.status)}>
                       {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-2">
-                      <button className="p-1 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors">
+                  <td>
+                    <div className="flex items-center space-x-1">
+                      <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all focus-ring">
                         <Eye className="w-4 h-4" />
                       </button>
-                      <button className="p-1 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded transition-colors">
+                      <button className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all focus-ring">
                         <Edit className="w-4 h-4" />
                       </button>
-                      <button className="p-1 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors">
+                      <button className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all focus-ring">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -354,53 +372,57 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
 
       {/* Empty State */}
       {sortedRequisitions.length === 0 && (
-        <div className="text-center py-12">
-          <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No requisitions found</h3>
-          <p className="text-gray-600 mb-6">
+        <div className="card p-12 text-center">
+          <FileText className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-slate-900 mb-2">No positions found</h3>
+          <p className="text-slate-600 mb-6">
             {searchTerm || statusFilter !== 'all' 
               ? 'Try adjusting your search or filter criteria'
-              : 'Get started by adding your first requisition'
+              : 'Get started by creating your first position'
             }
           </p>
           {!searchTerm && statusFilter === 'all' && (
             <button
               onClick={() => onNavigate('create-manual')}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+              className="btn btn-primary btn-md"
             >
-              Add Your First Requisition
+              <Plus className="w-4 h-4" />
+              Create First Position
             </button>
           )}
         </div>
       )}
 
       {/* Summary Stats */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Demand Plan Summary</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="card p-6">
+        <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+          <TrendingUp className="w-5 h-5 mr-2 text-slate-600" />
+          Position Summary
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div className="text-center">
-            <p className="text-2xl font-bold text-blue-600">
+            <p className="text-2xl font-semibold text-indigo-600">
               {mockRequisitions.filter(r => r.status === 'active').length}
             </p>
-            <p className="text-sm text-gray-600">Active Requisitions</p>
+            <p className="text-sm text-slate-600 mt-1">Active Positions</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-blue-600">
+            <p className="text-2xl font-semibold text-blue-600">
               {mockRequisitions.filter(r => r.status === 'filled').length}
             </p>
-            <p className="text-sm text-gray-600">Filled Positions</p>
+            <p className="text-sm text-slate-600 mt-1">Filled Positions</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-red-600">
+            <p className="text-2xl font-semibold text-red-600">
               {mockRequisitions.filter(r => r.status === 'cancelled').length}
             </p>
-            <p className="text-sm text-gray-600">Cancelled</p>
+            <p className="text-sm text-slate-600 mt-1">Cancelled</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-green-600">
+            <p className="text-2xl font-semibold text-emerald-600">
               {mockRequisitions.reduce((sum, r) => sum + r.number_of_positions, 0)}
             </p>
-            <p className="text-sm text-gray-600">Total Positions</p>
+            <p className="text-sm text-slate-600 mt-1">Total Openings</p>
           </div>
         </div>
       </div>

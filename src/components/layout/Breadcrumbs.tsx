@@ -12,24 +12,27 @@ interface BreadcrumbsProps {
 }
 
 export function Breadcrumbs({ items }: BreadcrumbsProps) {
+  if (items.length === 0) return null;
+
   return (
-    <nav className="flex items-center space-x-2 text-sm text-gray-600 mb-6">
+    <nav className="flex items-center space-x-2 text-sm text-slate-600 mb-6" aria-label="Breadcrumb">
       <button 
         onClick={() => window.location.href = '/'}
-        className="flex items-center hover:text-gray-900 transition-colors"
+        className="flex items-center p-1 rounded-md hover:bg-slate-100 transition-colors focus-ring"
+        aria-label="Home"
       >
         <Home className="w-4 h-4" />
       </button>
       
       {items.map((item, index) => (
         <React.Fragment key={index}>
-          <ChevronRight className="w-4 h-4 text-gray-400" />
+          <ChevronRight className="w-4 h-4 text-slate-400" />
           {index === items.length - 1 ? (
-            <span className="font-medium text-gray-900">{item.label}</span>
+            <span className="font-medium text-slate-900 px-1">{item.label}</span>
           ) : (
             <button
               onClick={item.onClick}
-              className="hover:text-gray-900 transition-colors"
+              className="px-1 py-0.5 rounded-md hover:text-slate-900 hover:bg-slate-100 transition-colors focus-ring"
             >
               {item.label}
             </button>

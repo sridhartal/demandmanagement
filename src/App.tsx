@@ -95,13 +95,13 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50">
       <Header userEmail={mockUser.email} />
       
       <div className="flex min-h-screen">
         <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
         
-        <main className="flex-1 p-6 lg:p-8 lg:ml-0">
+        <main className="flex-1 p-8 lg:ml-0 max-w-full overflow-x-hidden">
           <Breadcrumbs items={getBreadcrumbs()} />
           {renderMainContent()}
         </main>
