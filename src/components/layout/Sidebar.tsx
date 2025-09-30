@@ -190,10 +190,6 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
               <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-lg flex items-center justify-center shadow-sm">
                 <Building2 className="w-5 h-5 text-white" />
               </div>
-              <div>
-                <h2 className="font-semibold text-slate-900">Navigation</h2>
-                <p className="text-xs text-slate-500">Talent Management</p>
-              </div>
             </div>
           </div>
 
