@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Building2, Users, Download, Upload, Plus, Trash2, Edit2, Save, Eye, EyeOff, ZoomIn, ZoomOut, RotateCcw, FileText, CheckCircle, AlertCircle, Loader2, ArrowRight, ArrowLeft, X, Info, ChevronDown, ChevronRight, Play, Pause, SkipForward, SkipBack, Volume2, VolumeX } from 'lucide-react';
+import { Building2, Users, Download, Upload, Plus, Trash2, CreditCard as Edit2, Save, Eye, EyeOff, ZoomIn, ZoomOut, RotateCcw, FileText, CheckCircle, AlertCircle, Loader2, ArrowRight, ArrowLeft, X, Info, ChevronDown, ChevronRight, Play, Pause, SkipForward, SkipBack, Volume2, VolumeX } from 'lucide-react';
 
 // Accessibility utilities
 const announceToScreenReader = (message) => {
