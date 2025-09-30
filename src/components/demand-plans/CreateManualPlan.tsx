@@ -355,7 +355,7 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Position Category
+            Job Family
           </label>
           <select
             value={currentRequisition.position_category}
@@ -410,39 +410,42 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
             <label className="block text-sm font-medium text-gray-700 mb-3">
               Budget Details
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs text-gray-600 mb-1">Min</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="1000"
-                  value={currentRequisition.min_salary}
-                  onChange={(e) => updateRequisition('min_salary', parseInt(e.target.value) || 0)}
-                  className="w-full px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Mid</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="1000"
-                  value={currentRequisition.mid_salary}
-                  onChange={(e) => updateRequisition('mid_salary', parseInt(e.target.value) || 0)}
-                  className="w-full px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                />
+                <div className="flex">
+                  <select className="px-2 py-2 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-gray-50">
+                    <option value="USD">$</option>
+                    <option value="INR">₹</option>
+                    <option value="GBP">£</option>
+                  </select>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1000"
+                    value={currentRequisition.min_salary}
+                    onChange={(e) => updateRequisition('min_salary', parseInt(e.target.value) || 0)}
+                    className="flex-1 px-2 py-2 border-l-0 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-xs text-gray-600 mb-1">Max</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="1000"
-                  value={currentRequisition.max_salary}
-                  onChange={(e) => updateRequisition('max_salary', parseInt(e.target.value) || 0)}
-                  className="w-full px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                />
+                <div className="flex">
+                  <select className="px-2 py-2 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-gray-50">
+                    <option value="USD">$</option>
+                    <option value="INR">₹</option>
+                    <option value="GBP">£</option>
+                  </select>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1000"
+                    value={currentRequisition.max_salary}
+                    onChange={(e) => updateRequisition('max_salary', parseInt(e.target.value) || 0)}
+                    className="flex-1 px-2 py-2 border-l-0 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  />
+                </div>
               </div>
             </div>
             <p className="mt-1 text-xs text-gray-500">Budget range auto-suggested based on position and experience</p>
@@ -486,7 +489,7 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Remote Option
+                  Work Location
                 </label>
                 <select
                   value={currentRequisition.remote_option}
