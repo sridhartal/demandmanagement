@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Save, ArrowLeft, ArrowRight, Upload, Wand2, Edit, ChevronDown, ChevronRight, AlertCircle, CheckCircle, Info } from 'lucide-react';
+import { Plus, Trash2, Save, ArrowLeft, ArrowRight, Upload, Wand2, CreditCard as Edit, ChevronDown, ChevronRight, AlertCircle, CheckCircle, Info } from 'lucide-react';
 
 interface Requisition {
   id: string;
