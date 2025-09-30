@@ -160,6 +160,54 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
     urgency: 'Normal'
   });
 
+  // Calculate hiring complexity based on skills
+  const calculateHiringComplexity = () => {
+    const totalSkills = currentRequisition.mandatory_skills.filter(s => s.trim()).length;
+    
+    if (totalSkills <= 2) {
+      return {
+        level: 'Low',
+        percentage: 30,
+        color: 'green',
+        badge: 'L',
+        talentPool: 'Large',
+        talentPoolDesc: 'Abundant candidates with this skill combination available in the market',
+        noticePeriod: '15-30 days',
+        noticePeriodDesc: 'Average notice period for candidates with this profile based on seniority and market demand',
+        compensation: 'Below market',
+        compensationDesc: 'Below standard market rates; good negotiation opportunities'
+      };
+    } else if (totalSkills <= 5) {
+      return {
+        level: 'Medium',
+        percentage: 60,
+        color: 'amber',
+        badge: 'M',
+        talentPool: 'Moderate',
+        talentPoolDesc: 'Good availability of candidates with this skill combination in the market',
+        noticePeriod: '30-45 days',
+        noticePeriodDesc: 'Average notice period for candidates with this profile based on seniority and market demand',
+        compensation: 'Market standard',
+        compensationDesc: 'Standard market rates apply; minimal salary negotiation expected'
+      };
+    } else {
+      return {
+        level: 'High',
+        percentage: 85,
+        color: 'red',
+        badge: 'H',
+        talentPool: 'Limited',
+        talentPoolDesc: 'Limited candidates with this specialized skill combination available',
+        noticePeriod: '45-60 days',
+        noticePeriodDesc: 'Longer notice period expected due to specialized skills and high demand',
+        compensation: 'Above market',
+        compensationDesc: 'Above standard market rates; expect significant salary negotiations'
+      };
+    }
+  };
+
+  const complexity = calculateHiringComplexity();
+
   // Auto-populate fields when position title changes
   useEffect(() => {
     if (currentRequisition.position_title && POSITION_SUGGESTIONS[currentRequisition.position_title as keyof typeof POSITION_SUGGESTIONS]) {
@@ -553,11 +601,11 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
   );
 
   const renderSkills = () => (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-h-[600px]">
       {/* Left Side - Skills Section */}
-      <div className="space-y-6">
+      <div className="space-y-6 flex flex-col">
         {/* Mandatory Skills */}
-        <div>
+        <div className="flex-1">
           <label className="block text-sm font-medium text-gray-700 mb-4">
             Required Skills *
           </label>
@@ -620,7 +668,7 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
         </div>
 
         {/* Optional Skills */}
-        <div>
+        <div className="flex-1">
           <label className="block text-sm font-medium text-gray-700 mb-4">
             Nice-to-Have Skills
             <span className="text-gray-500 font-normal ml-1">(Optional)</span>
@@ -675,7 +723,7 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
         </div>
 
         {/* Skills Suggestions */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-auto">
           <h4 className="font-medium text-blue-900 mb-2">Popular Skills for {currentRequisition.position_title || 'This Position'}</h4>
           <div className="flex flex-wrap gap-2">
             {['TypeScript', 'AWS', 'Docker', 'Kubernetes', 'GraphQL', 'MongoDB', 'Redis', 'Microservices'].map(skill => (
@@ -700,7 +748,7 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
       </div>
 
       {/* Right Side - Hiring Complexity Section */}
-      <div className="space-y-6">
+      <div className="flex flex-col h-full">
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-6">Hiring Complexity</h3>
           
@@ -714,10 +762,27 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
             <div className="relative">
               <div className="w-full h-2 bg-gray-200 rounded-full">
                 <div className="h-2 bg-green-500 rounded-full" style={{ width: '30%' }}></div>
-              </div>
-              <div className="absolute -top-8 left-1/4 transform -translate-x-1/2">
-                <div className="w-12 h-12 bg-green-100 border-2 border-green-500 rounded-full flex items-center justify-center">
-                  <span className="text-lg font-bold text-green-700">L</span>
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    complexity.color === 'green' ? 'bg-green-500' :
+                    complexity.color === 'amber' ? 'bg-amber-500' :
+                    'bg-red-500'
+                  }`}
+              <div 
+                className="absolute -top-8 transform -translate-x-1/2 transition-all duration-300"
+                style={{ left: `${complexity.percentage}%` }}
+              >
+                <div className={`w-12 h-12 border-2 rounded-full flex items-center justify-center ${
+                  complexity.color === 'green' ? 'bg-green-100 border-green-500' :
+                  complexity.color === 'amber' ? 'bg-amber-100 border-amber-500' :
+                  'bg-red-100 border-red-500'
+                }`}>
+                  <span className={`text-lg font-bold ${
+                    complexity.color === 'green' ? 'text-green-700' :
+                    complexity.color === 'amber' ? 'text-amber-700' :
+                    'text-red-700'
+                  }`}>
+                    {complexity.badge}
+                  </span>
                 </div>
               </div>
             </div>
@@ -728,7 +793,7 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
             <div className="flex items-start space-x-3">
               <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
               <p className="text-sm text-blue-800">
-                Analysis based on {currentRequisition.mandatory_skills.filter(s => s.trim()).length} selected skills and current market data
+                Analysis based on {currentRequisition.mandatory_skills.filter(s => s.trim()).length} required skills and current market data
               </p>
             </div>
           </div>
@@ -740,10 +805,10 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
               <h4 className="font-medium text-gray-700">Talent Pool Availability</h4>
             </div>
             <div className="mb-2">
-              <span className="text-2xl font-bold text-gray-900">Large</span>
+              <span className="text-2xl font-bold text-gray-900">{complexity.talentPool}</span>
             </div>
             <p className="text-sm text-gray-600">
-              Abundant candidates with this skill combination available in the market
+              {complexity.talentPoolDesc}
             </p>
           </div>
 
@@ -754,10 +819,10 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
               <h4 className="font-medium text-gray-700">Expected Notice Period</h4>
             </div>
             <div className="mb-2">
-              <span className="text-2xl font-bold text-gray-900">30-45 days</span>
+              <span className="text-2xl font-bold text-gray-900">{complexity.noticePeriod}</span>
             </div>
             <p className="text-sm text-gray-600">
-              Average notice period for candidates with this profile based on seniority and market demand
+              {complexity.noticePeriodDesc}
             </p>
           </div>
 
@@ -768,10 +833,10 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
               <h4 className="font-medium text-gray-700">Compensation Outlook</h4>
             </div>
             <div className="mb-2">
-              <span className="text-2xl font-bold text-gray-900">Market standard</span>
+              <span className="text-2xl font-bold text-gray-900">{complexity.compensation}</span>
             </div>
             <p className="text-sm text-gray-600">
-              Standard market rates apply; minimal salary negotiation expected
+              {complexity.compensationDesc}
             </p>
           </div>
         </div>
