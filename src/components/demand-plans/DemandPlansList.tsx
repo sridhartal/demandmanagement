@@ -131,71 +131,26 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Position Dashboard</h1>
+          <h1 className="text-2xl font-semibold text-slate-900">Requisitions Dashboard</h1>
           <p className="text-slate-600 mt-1">Manage and track all open positions and requisitions</p>
         </div>
         
         <div className="flex items-center space-x-3">
-          <button className="btn btn-secondary btn-md">
-            <Download className="w-4 h-4" />
-            Export
+          <button 
+            onClick={() => onNavigate('bulk-upload')}
+            className="btn btn-secondary btn-md"
+          >
+            <Upload className="w-4 h-4" />
+            Bulk Upload
           </button>
           <button 
             onClick={() => onNavigate('create-manual')}
             className="btn btn-primary btn-md"
           >
             <Plus className="w-4 h-4" />
-            New Position
+            Create New Requisition
           </button>
         </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <button
-          onClick={() => onNavigate('create-manual')}
-          className="card card-hover p-6 text-left group transition-all duration-200 hover:shadow-medium"
-        >
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center group-hover:bg-indigo-200 transition-colors">
-              <Plus className="w-6 h-6 text-indigo-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-slate-900 group-hover:text-indigo-700 transition-colors">Create Position</h3>
-              <p className="text-slate-600 text-sm mt-0.5">Add a new job requisition manually</p>
-            </div>
-          </div>
-        </button>
-
-        <button
-          onClick={() => onNavigate('bulk-upload')}
-          className="card card-hover p-6 text-left group transition-all duration-200 hover:shadow-medium"
-        >
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center group-hover:bg-emerald-200 transition-colors">
-              <Upload className="w-6 h-6 text-emerald-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-slate-900 group-hover:text-emerald-700 transition-colors">Bulk Import</h3>
-              <p className="text-slate-600 text-sm mt-0.5">Upload multiple positions at once</p>
-            </div>
-          </div>
-        </button>
-
-        <button
-          onClick={() => onNavigate('ai-create')}
-          className="card card-hover p-6 text-left group transition-all duration-200 hover:shadow-medium"
-        >
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-xl flex items-center justify-center group-hover:from-purple-200 group-hover:to-indigo-200 transition-all">
-              <Bot className="w-6 h-6 text-purple-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-slate-900 group-hover:text-purple-700 transition-colors">AI Assistant</h3>
-              <p className="text-slate-600 text-sm mt-0.5">Describe your needs in natural language</p>
-            </div>
-          </div>
-        </button>
       </div>
 
       {/* Stats Cards */}
