@@ -553,6 +553,233 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
   );
 
   const renderSkills = () => (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* Left Side - Skills Section */}
+      <div className="space-y-6">
+        {/* Mandatory Skills */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-4">
+            Required Skills *
+          </label>
+          
+          <div className="mb-4">
+            <div className="flex flex-wrap gap-2 mb-3 min-h-[2.5rem] p-3 border border-gray-300 rounded-lg bg-gray-50">
+              {currentRequisition.mandatory_skills.filter(skill => skill.trim()).length > 0 ? (
+                currentRequisition.mandatory_skills.filter(skill => skill.trim()).map((skill, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800 border border-blue-200"
+                  >
+                    {skill}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const skillIndex = currentRequisition.mandatory_skills.indexOf(skill);
+                        removeSkill('mandatory_skills', skillIndex);
+                      }}
+                      className="ml-2 text-blue-600 hover:text-blue-800 font-bold"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))
+              ) : (
+                <span className="text-gray-500 text-sm">Auto-suggested skills will appear here</span>
+              )}
+            </div>
+            
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Type a skill and press Enter to add..."
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && e.currentTarget.value.trim() && currentRequisition.mandatory_skills.length < 10) {
+                    const newSkill = e.currentTarget.value.trim();
+                    if (!currentRequisition.mandatory_skills.includes(newSkill)) {
+                      setCurrentRequisition(prev => ({
+                        ...prev,
+                        mandatory_skills: [...prev.mandatory_skills.filter(s => s.trim()), newSkill]
+                      }));
+                      e.currentTarget.value = '';
+                    }
+                  }
+                }}
+              />
+            </div>
+            {validationErrors.mandatory_skills && (
+              <p className="mt-1 text-sm text-red-600 flex items-center">
+                <AlertCircle className="w-4 h-4 mr-1" />
+                {validationErrors.mandatory_skills}
+              </p>
+            )}
+            <p className="mt-1 text-xs text-gray-500">
+              {currentRequisition.mandatory_skills.filter(s => s.trim()).length}/10 skills added
+            </p>
+          </div>
+        </div>
+
+        {/* Optional Skills */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-4">
+            Nice-to-Have Skills
+            <span className="text-gray-500 font-normal ml-1">(Optional)</span>
+          </label>
+          
+          <div className="mb-4">
+            <div className="flex flex-wrap gap-2 mb-3 min-h-[2.5rem] p-3 border border-gray-300 rounded-lg bg-gray-50">
+              {currentRequisition.optional_skills.filter(skill => skill.trim()).length > 0 ? (
+                currentRequisition.optional_skills.filter(skill => skill.trim()).map((skill, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700 border border-gray-200"
+                  >
+                    {skill}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const skillIndex = currentRequisition.optional_skills.indexOf(skill);
+                        removeSkill('optional_skills', skillIndex);
+                      }}
+                      className="ml-2 text-gray-600 hover:text-gray-800 font-bold"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))
+              ) : (
+                <span className="text-gray-500 text-sm">Add optional skills that would be beneficial</span>
+              )}
+            </div>
+            
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Type an optional skill and press Enter..."
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                    const newSkill = e.currentTarget.value.trim();
+                    if (!currentRequisition.optional_skills.includes(newSkill)) {
+                      setCurrentRequisition(prev => ({
+                        ...prev,
+                        optional_skills: [...prev.optional_skills.filter(s => s.trim()), newSkill]
+                      }));
+                      e.currentTarget.value = '';
+                    }
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Skills Suggestions */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h4 className="font-medium text-blue-900 mb-2">Popular Skills for {currentRequisition.position_title || 'This Position'}</h4>
+          <div className="flex flex-wrap gap-2">
+            {['TypeScript', 'AWS', 'Docker', 'Kubernetes', 'GraphQL', 'MongoDB', 'Redis', 'Microservices'].map(skill => (
+              <button
+                key={skill}
+                type="button"
+                onClick={() => {
+                  if (!currentRequisition.optional_skills.includes(skill)) {
+                    setCurrentRequisition(prev => ({
+                      ...prev,
+                      optional_skills: [...prev.optional_skills.filter(s => s.trim()), skill]
+                    }));
+                  }
+                }}
+                className="px-3 py-1 text-sm bg-white border border-blue-300 text-blue-700 rounded-full hover:bg-blue-100 transition-colors"
+              >
+                + {skill}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Right Side - Hiring Complexity Section */}
+      <div className="space-y-6">
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-6">Hiring Complexity</h3>
+          
+          {/* Complexity Indicator */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm text-gray-600">Low</span>
+              <span className="text-sm text-gray-600">Medium</span>
+              <span className="text-sm text-gray-600">High</span>
+            </div>
+            <div className="relative">
+              <div className="w-full h-2 bg-gray-200 rounded-full">
+                <div className="h-2 bg-green-500 rounded-full" style={{ width: '30%' }}></div>
+              </div>
+              <div className="absolute -top-8 left-1/4 transform -translate-x-1/2">
+                <div className="w-12 h-12 bg-green-100 border-2 border-green-500 rounded-full flex items-center justify-center">
+                  <span className="text-lg font-bold text-green-700">L</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Analysis Note */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="flex items-start space-x-3">
+              <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-blue-800">
+                Analysis based on {currentRequisition.mandatory_skills.filter(s => s.trim()).length} selected skills and current market data
+              </p>
+            </div>
+          </div>
+
+          {/* Talent Pool Availability */}
+          <div className="border-l-4 border-blue-500 pl-4 mb-6">
+            <div className="flex items-center space-x-2 mb-2">
+              <Users className="w-5 h-5 text-gray-600" />
+              <h4 className="font-medium text-gray-700">Talent Pool Availability</h4>
+            </div>
+            <div className="mb-2">
+              <span className="text-2xl font-bold text-gray-900">Large</span>
+            </div>
+            <p className="text-sm text-gray-600">
+              Abundant candidates with this skill combination available in the market
+            </p>
+          </div>
+
+          {/* Expected Notice Period */}
+          <div className="border-l-4 border-amber-500 pl-4 mb-6">
+            <div className="flex items-center space-x-2 mb-2">
+              <Calendar className="w-5 h-5 text-gray-600" />
+              <h4 className="font-medium text-gray-700">Expected Notice Period</h4>
+            </div>
+            <div className="mb-2">
+              <span className="text-2xl font-bold text-gray-900">30-45 days</span>
+            </div>
+            <p className="text-sm text-gray-600">
+              Average notice period for candidates with this profile based on seniority and market demand
+            </p>
+          </div>
+
+          {/* Compensation Outlook */}
+          <div className="border-l-4 border-green-500 pl-4">
+            <div className="flex items-center space-x-2 mb-2">
+              <DollarSign className="w-5 h-5 text-gray-600" />
+              <h4 className="font-medium text-gray-700">Compensation Outlook</h4>
+            </div>
+            <div className="mb-2">
+              <span className="text-2xl font-bold text-gray-900">Market standard</span>
+            </div>
+            <p className="text-sm text-gray-600">
+              Standard market rates apply; minimal salary negotiation expected
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderSkillsOld = () => (
     <div className="space-y-6">
       {/* Mandatory Skills */}
       <div>
