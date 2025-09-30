@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Search, Filter, Eye, CreditCard as Edit, Trash2, Users, Calendar, DollarSign, MapPin, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Plus, Search, Filter, Eye, CreditCard as Edit, Trash2, Users, Calendar, DollarSign, MapPin, Clock, CheckCircle, XCircle, AlertCircle, Upload } from 'lucide-react';
 import { DemandPlan } from '../../types';
 
 export function DemandPlansList() {
@@ -101,13 +101,19 @@ export function DemandPlansList() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Demand Plans</h1>
-          <p className="text-gray-600">Manage and track your hiring demand plans</p>
+          <h1 className="text-2xl font-bold text-gray-900">Requisitions</h1>
+          <p className="text-gray-600">Manage and track your positions</p>
         </div>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
-          <Plus className="w-4 h-4" />
-          <span>Create New Plan</span>
-        </button>
+        <div className="flex items-center space-x-3">
+          <button className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center space-x-2">
+            <Upload className="w-4 h-4" />
+            <span>Bulk Upload</span>
+          </button>
+          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
+            <Plus className="w-4 h-4" />
+            <span>Add New Requisition</span>
+          </button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -115,7 +121,7 @@ export function DemandPlansList() {
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm font-medium">Total Plans</p>
+              <p className="text-gray-600 text-sm font-medium">Total Requisitions</p>
               <p className="text-2xl font-bold text-gray-900">{mockDemandPlans.length}</p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -215,15 +221,15 @@ export function DemandPlansList() {
         {filteredPlans.length === 0 ? (
           <div className="text-center py-12">
             <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No plans found</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No requisitions found</h3>
             <p className="text-gray-600 mb-6">
               {searchTerm || statusFilter !== 'all' 
                 ? 'Try adjusting your search or filters'
-                : 'Get started by creating your first demand plan'
+                : 'Get started by creating your first requisition'
               }
             </p>
             <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
-              Create First Plan
+              Create First Requisition
             </button>
           </div>
         ) : (
