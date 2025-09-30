@@ -1,29 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { 
-  Building2, 
-  Users, 
-  Download, 
-  Upload, 
-  Plus, 
-  Trash2, 
-  Edit2, 
-  Save, 
-  Eye, 
-  EyeOff,
-  ZoomIn,
-  ZoomOut,
-  RotateCcw,
-  FileText,
-  CheckCircle,
-  AlertCircle,
-  Loader2,
-  ArrowRight,
-  ArrowLeft,
-  X,
-  Info,
-  ChevronDown,
-  ChevronRight
-} from 'lucide-react';
+import { Building2, Users, Download, Upload, Plus, Trash2, CreditCard as Edit2, Save, Eye, EyeOff, ZoomIn, ZoomOut, RotateCcw, FileText, CheckCircle, AlertCircle, Loader2, ArrowRight, ArrowLeft, X, Info, ChevronDown, ChevronRight } from 'lucide-react';
 
 // Validation utilities
 const validateDepartmentName = (name) => {
