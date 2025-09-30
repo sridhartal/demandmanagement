@@ -274,7 +274,6 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
                     <div className="flex items-center">
                       <div>
                         <div className="text-sm font-medium text-gray-900">{plan.title}</div>
-                        <div className="text-sm text-gray-500">{plan.description}</div>
                       </div>
                     </div>
                   </td>
