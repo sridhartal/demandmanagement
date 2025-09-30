@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Plus, Trash2, CreditCard as Edit, Save, Download, Upload, Users, Building, ChevronDown, ChevronRight, Move, Eye, Settings, Layers, Network, ArrowRight, Check, X, FileSpreadsheet, AlertCircle, Info, Undo, Redo, ZoomIn, ZoomOut, RotateCcw, FileText, Image, Maximize2 } from 'lucide-react';
+import { Plus, Trash2, CreditCard as Edit, Save, Download, Upload, Users, Building, ChevronDown, ChevronRight, Move, Eye, Settings, Layers, Network, ArrowRight, Check, X, FileSpreadsheet, AlertCircle, Info, Undo, Redo, ZoomIn, ZoomOut, RotateCcw, FileText, Image, Maximize2, CheckCircle2, XCircle, HelpCircle } from 'lucide-react';
 
 interface Person {
   id: string;
@@ -34,6 +34,18 @@ interface ValidationError {
   personId?: string;
 }
 
+interface FormField {
+  value: string;
+  isValid: boolean;
+  error: string;
+  touched: boolean;
+  validating: boolean;
+}
+
+interface FormValidation {
+  [key: string]: FormField;
+}
+
 interface HistoryState {
   data: OrgChartData;
   timestamp: number;
@@ -64,8 +76,17 @@ export function OrgChartBuilder() {
   const [zoomLevel, setZoomLevel] = useState(100);
   const [showFullscreen, setShowFullscreen] = useState(false);
   
+  // Form validation states
+  const [formValidation, setFormValidation] = useState<{[key: string]: FormValidation}>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState<{[key: string]: boolean}>({});
+  const [showValidationSummary, setShowValidationSummary] = useState(false);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chartRef = useRef<HTMLDivElement>(null);
+  
+  // Validation timeouts for debouncing
+  const validationTimeouts = useRef<{[key: string]: NodeJS.Timeout}>({});
 
   const steps = [
     { id: 1, title: 'Setup Levels', description: 'Define organizational structure' },
@@ -78,6 +99,173 @@ export function OrgChartBuilder() {
     '#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EF4444', 
     '#06B6D4', '#84CC16', '#F97316', '#EC4899', '#6366F1'
   ];
+  
+  // Validation rules
+  const validationRules = {
+    departmentName: {
+      required: true,
+      minLength: 2,
+      maxLength: 50,
+      pattern: /^[a-zA-Z0-9\s&-]+$/,
+      message: 'Department name must be 2-50 characters, letters, numbers, spaces, & and - only'
+    },
+    personName: {
+      required: true,
+      minLength: 2,
+      maxLength: 100,
+      pattern: /^[a-zA-Z\s'-]+$/,
+      message: 'Name must be 2-100 characters, letters, spaces, apostrophes and hyphens only'
+    },
+    personTitle: {
+      required: true,
+      minLength: 2,
+      maxLength: 100,
+      pattern: /^[a-zA-Z0-9\s&,.-]+$/,
+      message: 'Title must be 2-100 characters, letters, numbers, and common punctuation only'
+    },
+    personEmail: {
+      required: false,
+      pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+      message: 'Please enter a valid email address'
+    },
+    levels: {
+      required: true,
+      min: 1,
+      max: 10,
+      message: 'Number of levels must be between 1 and 10'
+    }
+  };
+
+  // Validation helper functions
+  const validateField = useCallback((fieldName: string, value: string, rules: any): { isValid: boolean; error: string } => {
+    if (rules.required && (!value || value.trim().length === 0)) {
+      return { isValid: false, error: `${fieldName.replace(/([A-Z])/g, ' $1').toLowerCase()} is required` };
+    }
+    
+    if (!rules.required && (!value || value.trim().length === 0)) {
+      return { isValid: true, error: '' };
+    }
+    
+    if (rules.minLength && value.length < rules.minLength) {
+      return { isValid: false, error: `Must be at least ${rules.minLength} characters` };
+    }
+    
+    if (rules.maxLength && value.length > rules.maxLength) {
+      return { isValid: false, error: `Must be no more than ${rules.maxLength} characters` };
+    }
+    
+    if (rules.pattern && !rules.pattern.test(value)) {
+      return { isValid: false, error: rules.message };
+    }
+    
+    if (rules.min !== undefined && parseInt(value) < rules.min) {
+      return { isValid: false, error: `Must be at least ${rules.min}` };
+    }
+    
+    if (rules.max !== undefined && parseInt(value) > rules.max) {
+      return { isValid: false, error: `Must be no more than ${rules.max}` };
+    }
+    
+    return { isValid: true, error: '' };
+  }, []);
+  
+  const updateFieldValidation = useCallback((formId: string, fieldName: string, value: string, rules: any) => {
+    // Clear existing timeout
+    if (validationTimeouts.current[`${formId}-${fieldName}`]) {
+      clearTimeout(validationTimeouts.current[`${formId}-${fieldName}`]);
+    }
+    
+    // Set field as validating
+    setFormValidation(prev => ({
+      ...prev,
+      [formId]: {
+        ...prev[formId],
+        [fieldName]: {
+          ...prev[formId]?.[fieldName],
+          value,
+          validating: true,
+          touched: true
+        }
+      }
+    }));
+    
+    // Debounced validation
+    validationTimeouts.current[`${formId}-${fieldName}`] = setTimeout(() => {
+      const validation = validateField(fieldName, value, rules);
+      
+      setFormValidation(prev => ({
+        ...prev,
+        [formId]: {
+          ...prev[formId],
+          [fieldName]: {
+            value,
+            isValid: validation.isValid,
+            error: validation.error,
+            touched: true,
+            validating: false
+          }
+        }
+      }));
+    }, 300);
+  }, [validateField]);
+  
+  const getFieldValidation = useCallback((formId: string, fieldName: string): FormField => {
+    return formValidation[formId]?.[fieldName] || {
+      value: '',
+      isValid: true,
+      error: '',
+      touched: false,
+      validating: false
+    };
+  }, [formValidation]);
+  
+  const isFormValid = useCallback((formId: string, requiredFields: string[]): boolean => {
+    const form = formValidation[formId];
+    if (!form) return false;
+    
+    return requiredFields.every(field => {
+      const fieldValidation = form[field];
+      return fieldValidation && fieldValidation.isValid && fieldValidation.value.trim().length > 0;
+    });
+  }, [formValidation]);
+  
+  const showSuccessMessage = useCallback((formId: string) => {
+    setSubmitSuccess(prev => ({ ...prev, [formId]: true }));
+    setTimeout(() => {
+      setSubmitSuccess(prev => ({ ...prev, [formId]: false }));
+    }, 3000);
+  }, []);
+  
+  const validateAllFields = useCallback((formId: string, fields: {[key: string]: string}, rules: {[key: string]: any}): boolean => {
+    let allValid = true;
+    
+    Object.entries(fields).forEach(([fieldName, value]) => {
+      const fieldRules = rules[fieldName];
+      if (fieldRules) {
+        const validation = validateField(fieldName, value, fieldRules);
+        
+        setFormValidation(prev => ({
+          ...prev,
+          [formId]: {
+            ...prev[formId],
+            [fieldName]: {
+              value,
+              isValid: validation.isValid,
+              error: validation.error,
+              touched: true,
+              validating: false
+            }
+          }
+        }));
+        
+        if (!validation.isValid) {
+          allValid = false;
+        }
+      }
+    });
+    
+    return allValid;
+  }, [validateField]);
 
   // Save state to history
   const saveToHistory = useCallback((action: string) => {
@@ -185,7 +373,8 @@ export function OrgChartBuilder() {
     }));
     
     saveToHistory('Add Department');
-  }, [orgData.departments.length, saveToHistory]);
+    showSuccessMessage('department-list');
+  }, [orgData.departments.length, saveToHistory, showSuccessMessage]);
 
   const updateDepartment = useCallback((deptId: string, updates: Partial<Department>) => {
     setOrgData(prev => ({
@@ -196,7 +385,8 @@ export function OrgChartBuilder() {
     }));
     
     saveToHistory('Update Department');
-  }, [saveToHistory]);
+    showSuccessMessage(`department-${deptId}`);
+  }, [saveToHistory, showSuccessMessage]);
 
   const deleteDepartment = useCallback((deptId: string) => {
     setOrgData(prev => ({
@@ -210,7 +400,8 @@ export function OrgChartBuilder() {
     }));
     
     saveToHistory('Delete Department');
-  }, [saveToHistory]);
+    showSuccessMessage('department-list');
+  }, [saveToHistory, showSuccessMessage]);
 
   // Personnel management functions
   const addPerson = useCallback((deptId: string) => {
@@ -223,7 +414,8 @@ export function OrgChartBuilder() {
     updateDepartment(deptId, {
       personnel: [...(orgData.departments.find(d => d.id === deptId)?.personnel || []), newPerson]
     });
-  }, [orgData.departments, updateDepartment]);
+    showSuccessMessage(`department-${deptId}`);
+  }, [orgData.departments, updateDepartment, showSuccessMessage]);
 
   const updatePerson = useCallback((deptId: string, personId: string, updates: Partial<Person>) => {
     const department = orgData.departments.find(d => d.id === deptId);
@@ -273,7 +465,8 @@ export function OrgChartBuilder() {
     });
     
     saveToHistory('Update Hierarchy');
-  }, [saveToHistory]);
+    showSuccessMessage('hierarchy');
+  }, [saveToHistory, showSuccessMessage]);
 
   // Excel template generation
   const downloadTemplate = useCallback(() => {
@@ -442,6 +635,122 @@ export function OrgChartBuilder() {
     URL.revokeObjectURL(url);
   }, [orgData]);
 
+  // Enhanced input component with validation
+  const ValidatedInput = ({ 
+    formId, 
+    fieldName, 
+    rules, 
+    placeholder, 
+    type = 'text',
+    value,
+    onChange,
+    className = '',
+    disabled = false,
+    helpText = ''
+  }: {
+    formId: string;
+    fieldName: string;
+    rules: any;
+    placeholder: string;
+    type?: string;
+    value: string;
+    onChange: (value: string) => void;
+    className?: string;
+    disabled?: boolean;
+    helpText?: string;
+  }) => {
+    const fieldValidation = getFieldValidation(formId, fieldName);
+    const showError = fieldValidation.touched && !fieldValidation.isValid && fieldValidation.error;
+    const showSuccess = fieldValidation.touched && fieldValidation.isValid && fieldValidation.value.trim().length > 0;
+    
+    return (
+      <div className="space-y-1">
+        <div className="relative">
+          <input
+            type={type}
+            value={value}
+            onChange={(e) => {
+              onChange(e.target.value);
+              updateFieldValidation(formId, fieldName, e.target.value, rules);
+            }}
+            placeholder={placeholder}
+            disabled={disabled}
+            className={`
+              w-full px-4 py-3 border rounded-lg transition-all duration-200 pr-10
+              ${showError 
+                ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-200' 
+                : showSuccess 
+                ? 'border-green-300 bg-green-50 focus:border-green-500 focus:ring-green-200'
+                : 'border-slate-300 focus:border-indigo-500 focus:ring-indigo-200'
+              }
+              focus:ring-2 focus:outline-none
+              disabled:bg-slate-100 disabled:cursor-not-allowed
+              ${className}
+            `}
+          />
+          
+          {/* Validation status icon */}
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+            {fieldValidation.validating && (
+              <div className="w-4 h-4 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin"></div>
+            )}
+            {!fieldValidation.validating && showError && (
+              <XCircle className="w-5 h-5 text-red-500" />
+            )}
+            {!fieldValidation.validating && showSuccess && (
+              <CheckCircle2 className="w-5 h-5 text-green-500" />
+            )}
+          </div>
+        </div>
+        
+        {/* Help text */}
+        {helpText && !showError && (
+          <p className="text-xs text-slate-500 flex items-center">
+            <HelpCircle className="w-3 h-3 mr-1" />
+            {helpText}
+          </p>
+        )}
+        
+        {/* Error message */}
+        {showError && (
+          <p className="text-sm text-red-600 flex items-center animate-in slide-in-from-top-1 duration-200">
+            <AlertCircle className="w-4 h-4 mr-1 flex-shrink-0" />
+            {fieldValidation.error}
+          </p>
+        )}
+        
+        {/* Success message */}
+        {showSuccess && rules.required && (
+          <p className="text-sm text-green-600 flex items-center animate-in slide-in-from-top-1 duration-200">
+            <CheckCircle2 className="w-4 h-4 mr-1 flex-shrink-0" />
+            Looks good!
+          </p>
+        )}
+      </div>
+    );
+  };
+  
+  // Success notification component
+  const SuccessNotification = ({ formId, message }: { formId: string; message: string }) => {
+    if (!submitSuccess[formId]) return null;
+    
+    return (
+      <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-right-full duration-300">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 shadow-lg max-w-sm">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+              <CheckCircle2 className="w-5 h-5 text-green-600" />
+            </div>
+            <div>
+              <p className="font-medium text-green-900">Success!</p>
+              <p className="text-sm text-green-700">{message}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Render functions for each step
   const renderStepIndicator = () => (
     <div className="flex items-center justify-center space-x-4 mb-8">
@@ -476,6 +785,8 @@ export function OrgChartBuilder() {
 
   const renderStep1 = () => (
     <div className="space-y-8">
+      <SuccessNotification formId="levels" message="Organization levels updated successfully!" />
+      
       <div className="card p-8">
         <h3 className="text-xl font-semibold text-slate-900 mb-6 flex items-center">
           <Layers className="w-6 h-6 mr-3 text-indigo-600" />
@@ -491,7 +802,12 @@ export function OrgChartBuilder() {
                 min="1"
                 max="10"
                 value={orgData.levels}
-                onChange={(e) => setOrgData(prev => ({ ...prev, levels: parseInt(e.target.value) }))}
+                onChange={(e) => {
+                  const newValue = parseInt(e.target.value);
+                  setOrgData(prev => ({ ...prev, levels: newValue }));
+                  updateFieldValidation('levels', 'levels', newValue.toString(), validationRules.levels);
+                  showSuccessMessage('levels');
+                }}
                 className="flex-1 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
               />
               <div className="w-16 text-center">
@@ -503,12 +819,16 @@ export function OrgChartBuilder() {
               <span>1 level</span>
               <span>10 levels</span>
             </div>
-            {validationErrors.find(e => e.field === 'levels') && (
-              <p className="form-error">
-                <AlertCircle className="w-4 h-4" />
-                {validationErrors.find(e => e.field === 'levels')?.message}
-              </p>
-            )}
+            
+            {/* Real-time validation feedback */}
+            <div className="mt-3 p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <CheckCircle2 className="w-4 h-4 text-indigo-600" />
+                <span className="text-sm text-indigo-800">
+                  Perfect! {orgData.levels} level{orgData.levels !== 1 ? 's' : ''} selected
+                </span>
+              </div>
+            </div>
           </div>
 
           <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
@@ -542,6 +862,8 @@ export function OrgChartBuilder() {
 
   const renderStep2 = () => (
     <div className="space-y-8">
+      <SuccessNotification formId="department-list" message="Department changes saved successfully!" />
+      
       <div className="card p-8">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-semibold text-slate-900 flex items-center">
@@ -581,20 +903,26 @@ export function OrgChartBuilder() {
           </div>
         </div>
 
-        {validationErrors.find(e => e.field === 'departments') && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center space-x-2">
-              <AlertCircle className="w-5 h-5 text-red-600" />
-              <p className="text-red-800 font-medium">
-                {validationErrors.find(e => e.field === 'departments')?.message}
-              </p>
+        {/* Validation Summary */}
+        {orgData.departments.length === 0 && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+            <div className="flex items-start space-x-3">
+              <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
+              <div>
+                <p className="text-amber-800 font-medium">No departments added yet</p>
+                <p className="text-sm text-amber-700 mt-1">
+                  Add at least one department to continue building your organization chart.
+                </p>
+              </div>
             </div>
           </div>
         )}
 
         <div className="space-y-6">
           {orgData.departments.map((dept) => (
-            <div key={dept.id} className="border border-slate-200 rounded-lg p-6">
+            <div key={dept.id} className="border border-slate-200 rounded-lg p-6 relative">
+              <SuccessNotification formId={`department-${dept.id}`} message="Department updated successfully!" />
+              
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-4">
                   <div
@@ -602,12 +930,14 @@ export function OrgChartBuilder() {
                     style={{ backgroundColor: dept.color }}
                   ></div>
                   <div className="flex-1 space-y-2">
-                    <input
-                      type="text"
+                    <ValidatedInput
+                      formId={`department-${dept.id}`}
+                      fieldName="departmentName"
+                      rules={validationRules.departmentName}
                       value={dept.name}
-                      onChange={(e) => updateDepartment(dept.id, { name: e.target.value })}
-                      className="form-input font-medium"
-                      placeholder="Department name"
+                      onChange={(value) => updateDepartment(dept.id, { name: value })}
+                      placeholder="Enter department name"
+                      helpText="Use a clear, descriptive name for this department"
                     />
                     <div className="flex items-center space-x-4">
                       <div>
@@ -628,7 +958,7 @@ export function OrgChartBuilder() {
                           type="text"
                           value={dept.description}
                           onChange={(e) => updateDepartment(dept.id, { description: e.target.value })}
-                          className="form-input text-sm"
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                           placeholder="Optional description"
                         />
                       </div>
@@ -661,28 +991,35 @@ export function OrgChartBuilder() {
 
                 <div className="space-y-3">
                   {dept.personnel.map((person) => (
-                    <div key={person.id} className="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg">
+                    <div key={person.id} className="flex items-center space-x-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
                       <div className="flex-1 grid grid-cols-3 gap-3">
-                        <input
-                          type="text"
+                        <ValidatedInput
+                          formId={`person-${person.id}`}
+                          fieldName="personName"
+                          rules={validationRules.personName}
                           value={person.name}
-                          onChange={(e) => updatePerson(dept.id, person.id, { name: e.target.value })}
-                          className="form-input text-sm"
+                          onChange={(value) => updatePerson(dept.id, person.id, { name: value })}
                           placeholder="Full name"
+                          helpText="Enter the person's full name"
                         />
-                        <input
-                          type="text"
+                        <ValidatedInput
+                          formId={`person-${person.id}`}
+                          fieldName="personTitle"
+                          rules={validationRules.personTitle}
                           value={person.title}
-                          onChange={(e) => updatePerson(dept.id, person.id, { title: e.target.value })}
-                          className="form-input text-sm"
+                          onChange={(value) => updatePerson(dept.id, person.id, { title: value })}
                           placeholder="Job title"
+                          helpText="Enter their job title or role"
                         />
-                        <input
+                        <ValidatedInput
+                          formId={`person-${person.id}`}
+                          fieldName="personEmail"
+                          rules={validationRules.personEmail}
                           type="email"
                           value={person.email || ''}
-                          onChange={(e) => updatePerson(dept.id, person.id, { email: e.target.value })}
-                          className="form-input text-sm"
+                          onChange={(value) => updatePerson(dept.id, person.id, { email: value })}
                           placeholder="Email (optional)"
+                          helpText="Optional: work email address"
                         />
                       </div>
                       <button
@@ -701,14 +1038,6 @@ export function OrgChartBuilder() {
                   )}
                 </div>
               </div>
-
-              {/* Validation Errors for this department */}
-              {validationErrors.filter(e => e.departmentId === dept.id).map((error, index) => (
-                <div key={index} className="mt-2 text-sm text-red-600 flex items-center">
-                  <AlertCircle className="w-4 h-4 mr-1" />
-                  {error.message}
-                </div>
-              ))}
             </div>
           ))}
 
@@ -744,7 +1073,7 @@ export function OrgChartBuilder() {
         <button
           onClick={() => setCurrentStep(3)}
           disabled={orgData.departments.length === 0}
-          className="btn btn-primary btn-lg"
+          className="btn btn-primary btn-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <span>Next: Build Hierarchy</span>
           <ArrowRight className="w-4 h-4" />
@@ -755,6 +1084,8 @@ export function OrgChartBuilder() {
 
   const renderStep3 = () => (
     <div className="space-y-8">
+      <SuccessNotification formId="hierarchy" message="Hierarchy relationships updated successfully!" />
+      
       <div className="card p-8">
         <h3 className="text-xl font-semibold text-slate-900 mb-6 flex items-center">
           <Network className="w-6 h-6 mr-3 text-indigo-600" />
@@ -780,7 +1111,7 @@ export function OrgChartBuilder() {
           {orgData.departments
             .sort((a, b) => a.level - b.level)
             .map((dept) => (
-            <div key={dept.id} className="border border-slate-200 rounded-lg p-4">
+            <div key={dept.id} className="border border-slate-200 rounded-lg p-4 hover:border-slate-300 transition-colors">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div
@@ -800,8 +1131,11 @@ export function OrgChartBuilder() {
                     <label className="text-xs text-slate-600">Reports to:</label>
                     <select
                       value={dept.parentId || ''}
-                      onChange={(e) => setParentDepartment(dept.id, e.target.value || undefined)}
-                      className="form-select text-sm ml-2"
+                      onChange={(e) => {
+                        setParentDepartment(dept.id, e.target.value || undefined);
+                        showSuccessMessage('hierarchy');
+                      }}
+                      className="form-select text-sm ml-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                     >
                       <option value="">No parent (top level)</option>
                       {orgData.departments
@@ -818,14 +1152,17 @@ export function OrgChartBuilder() {
               
               {dept.children.length > 0 && (
                 <div className="mt-3 pt-3 border-t border-slate-200">
-                  <p className="text-xs text-slate-600 mb-2">Direct reports:</p>
+                  <p className="text-xs text-slate-600 mb-2 flex items-center">
+                    <Users className="w-3 h-3 mr-1" />
+                    Direct reports ({dept.children.length}):
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {dept.children.map(childId => {
                       const child = orgData.departments.find(d => d.id === childId);
                       return child ? (
                         <span
                           key={childId}
-                          className="px-2 py-1 bg-slate-100 text-slate-700 text-xs rounded-full"
+                          className="px-3 py-1 bg-indigo-100 text-indigo-700 text-xs rounded-full border border-indigo-200"
                         >
                           {child.name}
                         </span>
@@ -836,6 +1173,28 @@ export function OrgChartBuilder() {
               )}
             </div>
           ))}
+        </div>
+        
+        {/* Hierarchy validation summary */}
+        <div className="mt-6 p-4 bg-slate-50 rounded-lg">
+          <h4 className="font-medium text-slate-900 mb-2 flex items-center">
+            <Info className="w-4 h-4 mr-2 text-slate-600" />
+            Hierarchy Summary
+          </h4>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span className="text-slate-600">Top-level departments:</span>
+              <span className="ml-2 font-medium text-slate-900">
+                {orgData.departments.filter(d => !d.parentId).length}
+              </span>
+            </div>
+            <div>
+              <span className="text-slate-600">Total relationships:</span>
+              <span className="ml-2 font-medium text-slate-900">
+                {orgData.departments.filter(d => d.parentId).length}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -935,6 +1294,8 @@ export function OrgChartBuilder() {
 
   const renderStep4 = () => (
     <div className="space-y-8">
+      <SuccessNotification formId="export" message="Chart exported successfully!" />
+      
       <div className="card p-8">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-semibold text-slate-900 flex items-center">
@@ -992,15 +1353,33 @@ export function OrgChartBuilder() {
             
             {/* Export Options */}
             <div className="flex items-center space-x-2">
-              <button onClick={exportToPDF} className="btn btn-secondary btn-sm">
+              <button 
+                onClick={() => {
+                  exportToPDF();
+                  showSuccessMessage('export');
+                }} 
+                className="btn btn-secondary btn-sm hover:bg-slate-100 transition-colors"
+              >
                 <FileText className="w-4 h-4" />
                 PDF
               </button>
-              <button onClick={exportToPNG} className="btn btn-secondary btn-sm">
+              <button 
+                onClick={() => {
+                  exportToPNG();
+                  showSuccessMessage('export');
+                }} 
+                className="btn btn-secondary btn-sm hover:bg-slate-100 transition-colors"
+              >
                 <Image className="w-4 h-4" />
                 PNG
               </button>
-              <button onClick={exportToExcel} className="btn btn-secondary btn-sm">
+              <button 
+                onClick={() => {
+                  exportToExcel();
+                  showSuccessMessage('export');
+                }} 
+                className="btn btn-secondary btn-sm hover:bg-slate-100 transition-colors"
+              >
                 <FileSpreadsheet className="w-4 h-4" />
                 Excel
               </button>
@@ -1019,22 +1398,30 @@ export function OrgChartBuilder() {
         {/* Chart Statistics */}
         <div className="grid grid-cols-4 gap-4 mb-6">
           <div className="bg-indigo-50 p-4 rounded-lg">
-            <div className="text-2xl font-bold text-indigo-600">{orgData.departments.length}</div>
+            <div className="text-2xl font-bold text-indigo-600 flex items-center">
+              {orgData.departments.length}
+              <CheckCircle2 className="w-5 h-5 ml-2 text-indigo-500" />
+            </div>
             <div className="text-sm text-indigo-700">Departments</div>
           </div>
           <div className="bg-green-50 p-4 rounded-lg">
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-green-600 flex items-center">
               {orgData.departments.reduce((sum, dept) => sum + dept.personnel.length, 0)}
+              <CheckCircle2 className="w-5 h-5 ml-2 text-green-500" />
             </div>
             <div className="text-sm text-green-700">Total Personnel</div>
           </div>
           <div className="bg-purple-50 p-4 rounded-lg">
-            <div className="text-2xl font-bold text-purple-600">{orgData.levels}</div>
+            <div className="text-2xl font-bold text-purple-600 flex items-center">
+              {orgData.levels}
+              <CheckCircle2 className="w-5 h-5 ml-2 text-purple-500" />
+            </div>
             <div className="text-sm text-purple-700">Levels</div>
           </div>
           <div className="bg-amber-50 p-4 rounded-lg">
-            <div className="text-2xl font-bold text-amber-600">
+            <div className="text-2xl font-bold text-amber-600 flex items-center">
               {orgData.departments.filter(d => !d.parentId).length}
+              <CheckCircle2 className="w-5 h-5 ml-2 text-amber-500" />
             </div>
             <div className="text-sm text-amber-700">Root Departments</div>
           </div>
@@ -1078,7 +1465,7 @@ export function OrgChartBuilder() {
           <button
             onClick={undo}
             disabled={historyIndex <= 0}
-            className="btn btn-ghost btn-sm"
+            className="btn btn-ghost btn-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 transition-colors"
             title="Undo"
           >
             <Undo className="w-4 h-4" />
@@ -1086,7 +1473,7 @@ export function OrgChartBuilder() {
           <button
             onClick={redo}
             disabled={historyIndex >= history.length - 1}
-            className="btn btn-ghost btn-sm"
+            className="btn btn-ghost btn-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 transition-colors"
             title="Redo"
           >
             <Redo className="w-4 h-4" />
@@ -1111,16 +1498,19 @@ export function OrgChartBuilder() {
               <h3 className="text-lg font-semibold text-slate-900">Preview Uploaded Data</h3>
               <button
                 onClick={() => setShowUploadModal(false)}
-                className="p-2 hover:bg-slate-100 rounded-lg"
+                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
             
             <div className="mb-4">
-              <p className="text-sm text-slate-600">
-                Found {uploadPreview.length} rows. Review the data below and click "Import" to proceed.
-              </p>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm text-blue-800 flex items-center">
+                  <Info className="w-4 h-4 mr-2" />
+                  Found {uploadPreview.length} rows. Review the data below and click "Import" to proceed.
+                </p>
+              </div>
             </div>
             
             <div className="overflow-x-auto mb-6">
@@ -1164,8 +1554,9 @@ export function OrgChartBuilder() {
               </button>
               <button
                 onClick={processUploadedData}
-                className="btn btn-primary btn-md"
+                className="btn btn-primary btn-md hover:bg-indigo-700 transition-colors"
               >
+                <CheckCircle2 className="w-4 h-4 mr-2" />
                 Import Data
               </button>
             </div>
@@ -1181,7 +1572,7 @@ export function OrgChartBuilder() {
               <h2 className="text-xl font-semibold text-slate-900">Organization Chart - Fullscreen</h2>
               <button
                 onClick={() => setShowFullscreen(false)}
-                className="btn btn-ghost btn-md"
+                className="btn btn-ghost btn-md hover:bg-slate-100 transition-colors"
               >
                 <X className="w-5 h-5" />
                 Close
