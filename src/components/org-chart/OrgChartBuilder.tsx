@@ -528,28 +528,32 @@ export function OrgChartBuilder() {
 
       case 1:
         return (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* Add Department Form */}
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Department</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center">
+                <Building2 className="w-4 h-4 mr-2 text-blue-600" />
+                Add Department
+              </h3>
+              <div className="grid grid-cols-4 gap-3">
                 <ValidatedInput
                   label="Department Name"
                   value={newDepartment.name}
                   onChange={(value) => setNewDepartment({...newDepartment, name: value})}
                   validator={validateDepartmentName}
-                  placeholder="e.g., Engineering, Sales, Marketing"
+                  placeholder="e.g., Engineering"
                   required
+                  className="text-sm py-2"
                 />
                 
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">
+                <div className="space-y-1">
+                  <label className="block text-xs font-medium text-gray-700">
                     Organizational Level <span className="text-red-500">*</span>
                   </label>
                   <select
                     value={newDepartment.level}
                     onChange={(e) => setNewDepartment({...newDepartment, level: parseInt(e.target.value)})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                   >
                     {Array.from({length: orgLevels}, (_, i) => (
                       <option key={i + 1} value={i + 1}>Level {i + 1}</option>
@@ -557,82 +561,44 @@ export function OrgChartBuilder() {
                   </select>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Color</label>
+                <div className="space-y-1">
+                  <label className="block text-xs font-medium text-gray-700">Color</label>
                   <input
                     type="color"
                     value={newDepartment.color}
                     onChange={(e) => setNewDepartment({...newDepartment, color: e.target.value})}
-                    className="w-full h-12 border border-gray-300 rounded-lg cursor-pointer"
+                    className="w-full h-8 border border-gray-300 rounded-lg cursor-pointer"
                   />
                 </div>
 
-                <ValidatedInput
-                  label="Description"
-                  value={newDepartment.description}
-                  onChange={(value) => setNewDepartment({...newDepartment, description: value})}
-                  placeholder="Brief description of the department"
-                />
-              </div>
-              
-              <button
-                onClick={addDepartment}
-                disabled={!newDepartment.name.trim()}
-                className="mt-4 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Add Department
-              </button>
-            </div>
-
-            {/* Departments List */}
-            {departments.length > 0 && (
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Departments ({departments.length})</h3>
-                <div className="space-y-3">
-                  {departments.map((dept) => (
-                    <div key={dept.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <div 
-                          className="w-4 h-4 rounded-full"
-                          style={{ backgroundColor: dept.color }}
-                        />
-                        <div>
-                          <div className="font-medium text-gray-900">{dept.name}</div>
-                          <div className="text-sm text-gray-500">Level {dept.level}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => setEditingDepartment(dept)}
-                          className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => deleteDepartment(dept.id)}
-                          className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                <div className="flex items-end">
+                  <button
+                    onClick={addDepartment}
+                    disabled={!newDepartment.name.trim()}
+                    className="w-full bg-blue-600 text-white px-3 py-2 text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Add Department
+                  </button>
                 </div>
               </div>
-            )}
+            </div>
 
             {/* Add Personnel Form */}
             {departments.length > 0 && (
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Personnel</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center">
+                  <Users className="w-4 h-4 mr-2 text-green-600" />
+                  Add Personnel
+                </h3>
+                <div className="grid grid-cols-5 gap-3">
                   <ValidatedInput
                     label="Full Name"
                     value={newPerson.name}
                     onChange={(value) => setNewPerson({...newPerson, name: value})}
                     validator={validatePersonName}
-                    placeholder="e.g., John Smith"
+                    placeholder="John Smith"
                     required
+                    className="text-sm py-2"
                   />
 
                   <ValidatedInput
@@ -640,8 +606,9 @@ export function OrgChartBuilder() {
                     value={newPerson.title}
                     onChange={(value) => setNewPerson({...newPerson, title: value})}
                     validator={validateJobTitle}
-                    placeholder="e.g., Software Engineer"
+                    placeholder="Software Engineer"
                     required
+                    className="text-sm py-2"
                   />
 
                   <ValidatedInput
@@ -651,16 +618,17 @@ export function OrgChartBuilder() {
                     validator={validateEmail}
                     placeholder="john@company.com"
                     type="email"
+                    className="text-sm py-2"
                   />
 
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                  <div className="space-y-1">
+                    <label className="block text-xs font-medium text-gray-700">
                       Department <span className="text-red-500">*</span>
                     </label>
                     <select
                       value={newPerson.departmentId}
                       onChange={(e) => setNewPerson({...newPerson, departmentId: e.target.value})}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                     >
                       <option value="">Select Department</option>
                       {departments.map((dept) => (
@@ -668,58 +636,112 @@ export function OrgChartBuilder() {
                       ))}
                     </select>
                   </div>
+                  
+                  <div className="flex items-end">
+                    <button
+                      onClick={addPerson}
+                      disabled={!newPerson.name.trim() || !newPerson.title.trim() || !newPerson.departmentId}
+                      className="w-full bg-green-600 text-white px-3 py-2 text-sm rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Add Person
+                    </button>
+                  </div>
                 </div>
-                
-                <button
-                  onClick={addPerson}
-                  disabled={!newPerson.name.trim() || !newPerson.title.trim() || !newPerson.departmentId}
-                  className="mt-4 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Add Person
-                </button>
               </div>
             )}
 
-            {/* Personnel List */}
-            {personnel.length > 0 && (
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Personnel ({personnel.length})</h3>
-                <div className="space-y-3">
-                  {personnel.map((person) => {
-                    const dept = departments.find(d => d.id === person.departmentId);
-                    return (
-                      <div key={person.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-4">
-                          <div 
-                            className="w-4 h-4 rounded-full"
-                            style={{ backgroundColor: dept?.color || '#gray' }}
-                          />
-                          <div>
-                            <div className="font-medium text-gray-900">{person.name}</div>
-                            <div className="text-sm text-gray-500">{person.title} • {dept?.name}</div>
-                            {person.email && (
-                              <div className="text-xs text-gray-400">{person.email}</div>
-                            )}
+            {/* Combined Lists */}
+            {(departments.length > 0 || personnel.length > 0) && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Departments List */}
+                {departments.length > 0 && (
+                  <div className="bg-white border border-gray-200 rounded-lg p-4">
+                    <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center justify-between">
+                      <span className="flex items-center">
+                        <Building2 className="w-4 h-4 mr-2 text-blue-600" />
+                        Departments ({departments.length})
+                      </span>
+                    </h3>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {departments.map((dept) => (
+                        <div key={dept.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div className="flex items-center space-x-3 flex-1 min-w-0">
+                            <div 
+                              className="w-3 h-3 rounded-full flex-shrink-0"
+                              style={{ backgroundColor: dept.color }}
+                            />
+                            <div className="min-w-0 flex-1">
+                              <div className="font-medium text-gray-900 text-sm truncate">{dept.name}</div>
+                              <div className="text-xs text-gray-500">Level {dept.level}</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-1 flex-shrink-0">
+                            <button
+                              onClick={() => setEditingDepartment(dept)}
+                              className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            >
+                              <Edit2 className="w-3 h-3" />
+                            </button>
+                            <button
+                              onClick={() => deleteDepartment(dept.id)}
+                              className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => setEditingPerson(person)}
-                            className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => deletePerson(person.id)}
-                            className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Personnel List */}
+                {personnel.length > 0 && (
+                  <div className="bg-white border border-gray-200 rounded-lg p-4">
+                    <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center justify-between">
+                      <span className="flex items-center">
+                        <Users className="w-4 h-4 mr-2 text-green-600" />
+                        Personnel ({personnel.length})
+                      </span>
+                    </h3>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {personnel.map((person) => {
+                        const dept = departments.find(d => d.id === person.departmentId);
+                        return (
+                          <div key={person.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div className="flex items-center space-x-3 flex-1 min-w-0">
+                              <div 
+                                className="w-3 h-3 rounded-full flex-shrink-0"
+                                style={{ backgroundColor: dept?.color || '#gray' }}
+                              />
+                              <div className="min-w-0 flex-1">
+                                <div className="font-medium text-gray-900 text-sm truncate">{person.name}</div>
+                                <div className="text-xs text-gray-500 truncate">{person.title} • {dept?.name}</div>
+                                {person.email && (
+                                  <div className="text-xs text-gray-400 truncate">{person.email}</div>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-1 flex-shrink-0">
+                              <button
+                                onClick={() => setEditingPerson(person)}
+                                className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                              >
+                                <Edit2 className="w-3 h-3" />
+                              </button>
+                              <button
+                                onClick={() => deletePerson(person.id)}
+                                className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
