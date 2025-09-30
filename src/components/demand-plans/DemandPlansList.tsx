@@ -248,7 +248,13 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
                   Requisition Name
                 </th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Created By
+                </th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Position Count
+                </th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Budget Range
                 </th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Created Date
@@ -264,7 +270,7 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredPlans.map((plan) => (
                 <tr key={plan.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4 whitespace-nowrap w-1/4">
                     <div className="flex items-center">
                       <div>
                         <div className="text-sm font-medium text-gray-900">{plan.title}</div>
@@ -273,7 +279,13 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{plan.created_by.split('@')[0]}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{plan.total_positions}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">$80K - $120K</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
