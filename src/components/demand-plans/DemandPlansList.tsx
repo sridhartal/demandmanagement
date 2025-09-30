@@ -233,7 +233,6 @@ export function DemandPlansList() {
             </button>
           </div>
         ) : (
-          filteredPlans.map((plan) => (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
@@ -300,6 +299,7 @@ export function DemandPlansList() {
             </tbody>
           </table>
         </div>
+        )}
       </div>
     </div>
   );
