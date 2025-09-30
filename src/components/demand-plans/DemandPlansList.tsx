@@ -1027,7 +1027,7 @@ export function OrgChartBuilder() {
                     className="w-full h-8 border border-gray-300 rounded-lg cursor-pointer"
                   />
                 </div>
-
+                
                 <div className="flex items-end">
                   <button
                     onClick={addDepartment}
@@ -1057,7 +1057,7 @@ export function OrgChartBuilder() {
                     required
                     className="text-sm py-2"
                   />
-
+                  
                   <AccessibleInput
                     label="Job Title"
                     value={newPerson.title}
