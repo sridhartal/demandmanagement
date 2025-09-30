@@ -1,35 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { 
-  Plus, 
-  Trash2, 
-  Edit, 
-  Save, 
-  Download, 
-  Upload, 
-  Users, 
-  Building, 
-  ChevronDown, 
-  ChevronRight,
-  Move,
-  Eye,
-  Settings,
-  Layers,
-  Network,
-  ArrowRight,
-  Check,
-  X,
-  FileSpreadsheet,
-  AlertCircle,
-  Info,
-  Undo,
-  Redo,
-  ZoomIn,
-  ZoomOut,
-  RotateCcw,
-  FileText,
-  Image,
-  Maximize2
-} from 'lucide-react';
+import { Plus, Trash2, CreditCard as Edit, Save, Download, Upload, Users, Building, ChevronDown, ChevronRight, Move, Eye, Settings, Layers, Network, ArrowRight, Check, X, FileSpreadsheet, AlertCircle, Info, Undo, Redo, ZoomIn, ZoomOut, RotateCcw, FileText, Image, Maximize2 } from 'lucide-react';
 
 interface Person {
   id: string;
