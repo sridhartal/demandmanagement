@@ -1,1587 +1,1229 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Plus, Trash2, CreditCard as Edit, Save, Download, Upload, Users, Building, ChevronDown, ChevronRight, Move, Eye, Settings, Layers, Network, ArrowRight, Check, X, FileSpreadsheet, AlertCircle, Info, Undo, Redo, ZoomIn, ZoomOut, RotateCcw, FileText, Image, Maximize2, CheckCircle2, XCircle, HelpCircle } from 'lucide-react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { 
+  Building2, 
+  Users, 
+  Download, 
+  Upload, 
+  Plus, 
+  Trash2, 
+  Edit2, 
+  Save, 
+  Eye, 
+  EyeOff,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  FileText,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  ArrowRight,
+  ArrowLeft,
+  X,
+  Info,
+  ChevronDown,
+  ChevronRight
+} from 'lucide-react';
 
-interface Person {
-  id: string;
-  name: string;
-  title: string;
-  email?: string;
-  phone?: string;
-}
+// Validation utilities
+const validateDepartmentName = (name) => {
+  if (!name || name.trim().length === 0) {
+    return { isValid: false, message: 'Department name is required' };
+  }
+  if (name.trim().length < 2) {
+    return { isValid: false, message: 'Department name must be at least 2 characters' };
+  }
+  if (name.trim().length > 50) {
+    return { isValid: false, message: 'Department name must be less than 50 characters' };
+  }
+  if (!/^[a-zA-Z0-9\s&-]+$/.test(name.trim())) {
+    return { isValid: false, message: 'Only letters, numbers, spaces, & and - are allowed' };
+  }
+  return { isValid: true, message: 'Looks good!' };
+};
 
-interface Department {
-  id: string;
-  name: string;
-  color: string;
-  description: string;
-  personnel: Person[];
-  level: number;
-  parentId?: string;
-  children: string[];
-}
+const validatePersonName = (name) => {
+  if (!name || name.trim().length === 0) {
+    return { isValid: false, message: 'Name is required' };
+  }
+  if (name.trim().length < 2) {
+    return { isValid: false, message: 'Name must be at least 2 characters' };
+  }
+  if (name.trim().length > 100) {
+    return { isValid: false, message: 'Name must be less than 100 characters' };
+  }
+  if (!/^[a-zA-Z\s'-]+$/.test(name.trim())) {
+    return { isValid: false, message: 'Only letters, spaces, apostrophes and hyphens are allowed' };
+  }
+  return { isValid: true, message: 'Looks good!' };
+};
 
-interface OrgChartData {
-  levels: number;
-  departments: Department[];
-  layout: 'vertical' | 'horizontal';
-  showPersonnel: boolean;
-}
+const validateJobTitle = (title) => {
+  if (!title || title.trim().length === 0) {
+    return { isValid: false, message: 'Job title is required' };
+  }
+  if (title.trim().length < 2) {
+    return { isValid: false, message: 'Job title must be at least 2 characters' };
+  }
+  if (title.trim().length > 100) {
+    return { isValid: false, message: 'Job title must be less than 100 characters' };
+  }
+  return { isValid: true, message: 'Looks good!' };
+};
 
-interface ValidationError {
-  field: string;
-  message: string;
-  departmentId?: string;
-  personId?: string;
-}
+const validateEmail = (email) => {
+  if (!email || email.trim().length === 0) {
+    return { isValid: true, message: 'Email is optional' };
+  }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email.trim())) {
+    return { isValid: false, message: 'Please enter a valid email address' };
+  }
+  return { isValid: true, message: 'Valid email!' };
+};
 
-interface FormField {
-  value: string;
-  isValid: boolean;
-  error: string;
-  touched: boolean;
-  validating: boolean;
-}
-
-interface FormValidation {
-  [key: string]: FormField;
-}
-
-interface HistoryState {
-  data: OrgChartData;
-  timestamp: number;
-  action: string;
-}
-
-export function OrgChartBuilder() {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [orgData, setOrgData] = useState<OrgChartData>({
-    levels: 3,
-    departments: [],
-    layout: 'vertical',
-    showPersonnel: true
-  });
-  
-  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
-  const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
-  const [draggedDepartment, setDraggedDepartment] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadPreview, setUploadPreview] = useState<any[]>([]);
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  
-  // History management for undo/redo
-  const [history, setHistory] = useState<HistoryState[]>([]);
-  const [historyIndex, setHistoryIndex] = useState(-1);
-  
-  // Chart visualization settings
-  const [zoomLevel, setZoomLevel] = useState(100);
-  const [showFullscreen, setShowFullscreen] = useState(false);
-  
-  // Form validation states
-  const [formValidation, setFormValidation] = useState<{[key: string]: FormValidation}>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState<{[key: string]: boolean}>({});
-  const [showValidationSummary, setShowValidationSummary] = useState(false);
-  
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const chartRef = useRef<HTMLDivElement>(null);
-  
-  // Validation timeouts for debouncing
-  const validationTimeouts = useRef<{[key: string]: NodeJS.Timeout}>({});
-
-  const steps = [
-    { id: 1, title: 'Setup Levels', description: 'Define organizational structure' },
-    { id: 2, title: 'Manage Departments', description: 'Add departments and personnel' },
-    { id: 3, title: 'Build Hierarchy', description: 'Define reporting relationships' },
-    { id: 4, title: 'Visualize Chart', description: 'View and export your org chart' }
-  ];
-
-  const departmentColors = [
-    '#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EF4444', 
-    '#06B6D4', '#84CC16', '#F97316', '#EC4899', '#6366F1'
-  ];
-  
-  // Validation rules
-  const validationRules = {
-    departmentName: {
-      required: true,
-      minLength: 2,
-      maxLength: 50,
-      pattern: /^[a-zA-Z0-9\s&-]+$/,
-      message: 'Department name must be 2-50 characters, letters, numbers, spaces, & and - only'
-    },
-    personName: {
-      required: true,
-      minLength: 2,
-      maxLength: 100,
-      pattern: /^[a-zA-Z\s'-]+$/,
-      message: 'Name must be 2-100 characters, letters, spaces, apostrophes and hyphens only'
-    },
-    personTitle: {
-      required: true,
-      minLength: 2,
-      maxLength: 100,
-      pattern: /^[a-zA-Z0-9\s&,.-]+$/,
-      message: 'Title must be 2-100 characters, letters, numbers, and common punctuation only'
-    },
-    personEmail: {
-      required: false,
-      pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-      message: 'Please enter a valid email address'
-    },
-    levels: {
-      required: true,
-      min: 1,
-      max: 10,
-      message: 'Number of levels must be between 1 and 10'
-    }
-  };
-
-  // Validation helper functions
-  const validateField = useCallback((fieldName: string, value: string, rules: any): { isValid: boolean; error: string } => {
-    if (rules.required && (!value || value.trim().length === 0)) {
-      return { isValid: false, error: `${fieldName.replace(/([A-Z])/g, ' $1').toLowerCase()} is required` };
-    }
-    
-    if (!rules.required && (!value || value.trim().length === 0)) {
-      return { isValid: true, error: '' };
-    }
-    
-    if (rules.minLength && value.length < rules.minLength) {
-      return { isValid: false, error: `Must be at least ${rules.minLength} characters` };
-    }
-    
-    if (rules.maxLength && value.length > rules.maxLength) {
-      return { isValid: false, error: `Must be no more than ${rules.maxLength} characters` };
-    }
-    
-    if (rules.pattern && !rules.pattern.test(value)) {
-      return { isValid: false, error: rules.message };
-    }
-    
-    if (rules.min !== undefined && parseInt(value) < rules.min) {
-      return { isValid: false, error: `Must be at least ${rules.min}` };
-    }
-    
-    if (rules.max !== undefined && parseInt(value) > rules.max) {
-      return { isValid: false, error: `Must be no more than ${rules.max}` };
-    }
-    
-    return { isValid: true, error: '' };
-  }, []);
-  
-  const updateFieldValidation = useCallback((formId: string, fieldName: string, value: string, rules: any) => {
-    // Clear existing timeout
-    if (validationTimeouts.current[`${formId}-${fieldName}`]) {
-      clearTimeout(validationTimeouts.current[`${formId}-${fieldName}`]);
-    }
-    
-    // Set field as validating
-    setFormValidation(prev => ({
-      ...prev,
-      [formId]: {
-        ...prev[formId],
-        [fieldName]: {
-          ...prev[formId]?.[fieldName],
-          value,
-          validating: true,
-          touched: true
-        }
-      }
-    }));
-    
-    // Debounced validation
-    validationTimeouts.current[`${formId}-${fieldName}`] = setTimeout(() => {
-      const validation = validateField(fieldName, value, rules);
-      
-      setFormValidation(prev => ({
-        ...prev,
-        [formId]: {
-          ...prev[formId],
-          [fieldName]: {
-            value,
-            isValid: validation.isValid,
-            error: validation.error,
-            touched: true,
-            validating: false
-          }
-        }
-      }));
-    }, 300);
-  }, [validateField]);
-  
-  const getFieldValidation = useCallback((formId: string, fieldName: string): FormField => {
-    return formValidation[formId]?.[fieldName] || {
-      value: '',
-      isValid: true,
-      error: '',
-      touched: false,
-      validating: false
-    };
-  }, [formValidation]);
-  
-  const isFormValid = useCallback((formId: string, requiredFields: string[]): boolean => {
-    const form = formValidation[formId];
-    if (!form) return false;
-    
-    return requiredFields.every(field => {
-      const fieldValidation = form[field];
-      return fieldValidation && fieldValidation.isValid && fieldValidation.value.trim().length > 0;
-    });
-  }, [formValidation]);
-  
-  const showSuccessMessage = useCallback((formId: string) => {
-    setSubmitSuccess(prev => ({ ...prev, [formId]: true }));
-    setTimeout(() => {
-      setSubmitSuccess(prev => ({ ...prev, [formId]: false }));
-    }, 3000);
-  }, []);
-  
-  const validateAllFields = useCallback((formId: string, fields: {[key: string]: string}, rules: {[key: string]: any}): boolean => {
-    let allValid = true;
-    
-    Object.entries(fields).forEach(([fieldName, value]) => {
-      const fieldRules = rules[fieldName];
-      if (fieldRules) {
-        const validation = validateField(fieldName, value, fieldRules);
-        
-        setFormValidation(prev => ({
-          ...prev,
-          [formId]: {
-            ...prev[formId],
-            [fieldName]: {
-              value,
-              isValid: validation.isValid,
-              error: validation.error,
-              touched: true,
-              validating: false
-            }
-          }
-        }));
-        
-        if (!validation.isValid) {
-          allValid = false;
-        }
-      }
-    });
-    
-    return allValid;
-  }, [validateField]);
-
-  // Save state to history
-  const saveToHistory = useCallback((action: string) => {
-    const newState: HistoryState = {
-      data: JSON.parse(JSON.stringify(orgData)),
-      timestamp: Date.now(),
-      action
-    };
-    
-    const newHistory = history.slice(0, historyIndex + 1);
-    newHistory.push(newState);
-    
-    // Limit history to 50 items
-    if (newHistory.length > 50) {
-      newHistory.shift();
-    }
-    
-    setHistory(newHistory);
-    setHistoryIndex(newHistory.length - 1);
-  }, [orgData, history, historyIndex]);
-
-  // Undo functionality
-  const undo = useCallback(() => {
-    if (historyIndex > 0) {
-      const previousState = history[historyIndex - 1];
-      setOrgData(previousState.data);
-      setHistoryIndex(historyIndex - 1);
-    }
-  }, [history, historyIndex]);
-
-  // Redo functionality
-  const redo = useCallback(() => {
-    if (historyIndex < history.length - 1) {
-      const nextState = history[historyIndex + 1];
-      setOrgData(nextState.data);
-      setHistoryIndex(historyIndex + 1);
-    }
-  }, [history, historyIndex]);
-
-  // Validation functions
-  const validateData = useCallback((): ValidationError[] => {
-    const errors: ValidationError[] = [];
-    
-    if (orgData.levels < 1 || orgData.levels > 10) {
-      errors.push({ field: 'levels', message: 'Number of levels must be between 1 and 10' });
-    }
-    
-    if (orgData.departments.length === 0) {
-      errors.push({ field: 'departments', message: 'At least one department is required' });
-    }
-    
-    orgData.departments.forEach(dept => {
-      if (!dept.name.trim()) {
-        errors.push({ 
-          field: 'departmentName', 
-          message: 'Department name is required',
-          departmentId: dept.id 
-        });
-      }
-      
-      if (dept.level < 1 || dept.level > orgData.levels) {
-        errors.push({ 
-          field: 'departmentLevel', 
-          message: `Department level must be between 1 and ${orgData.levels}`,
-          departmentId: dept.id 
-        });
-      }
-      
-      dept.personnel.forEach(person => {
-        if (!person.name.trim()) {
-          errors.push({ 
-            field: 'personName', 
-            message: 'Person name is required',
-            departmentId: dept.id,
-            personId: person.id 
-          });
-        }
-      });
-    });
-    
-    return errors;
-  }, [orgData]);
-
-  // Update validation errors when data changes
+// Toast notification component
+const Toast = ({ message, type, onClose }) => {
   useEffect(() => {
-    const errors = validateData();
-    setValidationErrors(errors);
-  }, [validateData]);
+    const timer = setTimeout(onClose, 3000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
 
-  // Department management functions
-  const addDepartment = useCallback(() => {
-    const newDept: Department = {
-      id: Date.now().toString(),
-      name: `Department ${orgData.departments.length + 1}`,
-      color: departmentColors[orgData.departments.length % departmentColors.length],
-      description: '',
-      personnel: [],
-      level: 1,
-      children: []
-    };
-    
-    setOrgData(prev => ({
-      ...prev,
-      departments: [...prev.departments, newDept]
-    }));
-    
-    saveToHistory('Add Department');
-    showSuccessMessage('department-list');
-  }, [orgData.departments.length, saveToHistory, showSuccessMessage]);
-
-  const updateDepartment = useCallback((deptId: string, updates: Partial<Department>) => {
-    setOrgData(prev => ({
-      ...prev,
-      departments: prev.departments.map(dept => 
-        dept.id === deptId ? { ...dept, ...updates } : dept
-      )
-    }));
-    
-    saveToHistory('Update Department');
-    showSuccessMessage(`department-${deptId}`);
-  }, [saveToHistory, showSuccessMessage]);
-
-  const deleteDepartment = useCallback((deptId: string) => {
-    setOrgData(prev => ({
-      ...prev,
-      departments: prev.departments.filter(dept => dept.id !== deptId)
-        .map(dept => ({
-          ...dept,
-          parentId: dept.parentId === deptId ? undefined : dept.parentId,
-          children: dept.children.filter(childId => childId !== deptId)
-        }))
-    }));
-    
-    saveToHistory('Delete Department');
-    showSuccessMessage('department-list');
-  }, [saveToHistory, showSuccessMessage]);
-
-  // Personnel management functions
-  const addPerson = useCallback((deptId: string) => {
-    const newPerson: Person = {
-      id: Date.now().toString(),
-      name: '',
-      title: ''
-    };
-    
-    updateDepartment(deptId, {
-      personnel: [...(orgData.departments.find(d => d.id === deptId)?.personnel || []), newPerson]
-    });
-    showSuccessMessage(`department-${deptId}`);
-  }, [orgData.departments, updateDepartment, showSuccessMessage]);
-
-  const updatePerson = useCallback((deptId: string, personId: string, updates: Partial<Person>) => {
-    const department = orgData.departments.find(d => d.id === deptId);
-    if (department) {
-      const updatedPersonnel = department.personnel.map(person =>
-        person.id === personId ? { ...person, ...updates } : person
-      );
-      updateDepartment(deptId, { personnel: updatedPersonnel });
-    }
-  }, [orgData.departments, updateDepartment]);
-
-  const deletePerson = useCallback((deptId: string, personId: string) => {
-    const department = orgData.departments.find(d => d.id === deptId);
-    if (department) {
-      const updatedPersonnel = department.personnel.filter(person => person.id !== personId);
-      updateDepartment(deptId, { personnel: updatedPersonnel });
-    }
-  }, [orgData.departments, updateDepartment]);
-
-  // Hierarchy management
-  const setParentDepartment = useCallback((childId: string, parentId?: string) => {
-    setOrgData(prev => {
-      const departments = prev.departments.map(dept => {
-        // Remove child from previous parent
-        if (dept.children.includes(childId)) {
-          return {
-            ...dept,
-            children: dept.children.filter(id => id !== childId)
-          };
-        }
-        return dept;
-      }).map(dept => {
-        // Update child's parent and add to new parent's children
-        if (dept.id === childId) {
-          return { ...dept, parentId };
-        }
-        if (dept.id === parentId) {
-          return {
-            ...dept,
-            children: [...dept.children, childId]
-          };
-        }
-        return dept;
-      });
-      
-      return { ...prev, departments };
-    });
-    
-    saveToHistory('Update Hierarchy');
-    showSuccessMessage('hierarchy');
-  }, [saveToHistory, showSuccessMessage]);
-
-  // Excel template generation
-  const downloadTemplate = useCallback(() => {
-    const headers = ['Level', 'Department', 'Person Name', 'Person Title', 'Person Email', 'Parent Department'];
-    const sampleData = [
-      ['1', 'Executive', 'John Doe', 'CEO', 'john.doe@company.com', ''],
-      ['2', 'Engineering', 'Jane Smith', 'VP Engineering', 'jane.smith@company.com', 'Executive'],
-      ['3', 'Frontend Team', 'Bob Johnson', 'Frontend Lead', 'bob.johnson@company.com', 'Engineering'],
-      ['3', 'Backend Team', 'Alice Brown', 'Backend Lead', 'alice.brown@company.com', 'Engineering']
-    ];
-    
-    const csvContent = [headers, ...sampleData]
-      .map(row => row.map(cell => `"${cell}"`).join(','))
-      .join('\n');
-    
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'org-chart-template.csv';
-    link.click();
-    URL.revokeObjectURL(url);
-  }, []);
-
-  // Excel file upload and processing
-  const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    
-    setIsUploading(true);
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const text = e.target?.result as string;
-        const lines = text.split('\n').filter(line => line.trim());
-        const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
-        
-        const data = lines.slice(1).map(line => {
-          const values = line.split(',').map(v => v.replace(/"/g, '').trim());
-          return headers.reduce((obj, header, index) => {
-            obj[header] = values[index] || '';
-            return obj;
-          }, {} as any);
-        });
-        
-        setUploadPreview(data);
-        setShowUploadModal(true);
-      } catch (error) {
-        alert('Error reading file. Please check the format.');
-      } finally {
-        setIsUploading(false);
-      }
-    };
-    
-    reader.readAsText(file);
-  }, []);
-
-  // Process uploaded data
-  const processUploadedData = useCallback(() => {
-    const departmentMap = new Map<string, Department>();
-    const maxLevel = Math.max(...uploadPreview.map(row => parseInt(row.Level) || 1));
-    
-    // Create departments
-    uploadPreview.forEach(row => {
-      const deptName = row.Department;
-      const level = parseInt(row.Level) || 1;
-      
-      if (!departmentMap.has(deptName)) {
-        const dept: Department = {
-          id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-          name: deptName,
-          color: departmentColors[departmentMap.size % departmentColors.length],
-          description: '',
-          personnel: [],
-          level,
-          children: []
-        };
-        departmentMap.set(deptName, dept);
-      }
-      
-      // Add person to department
-      if (row['Person Name']) {
-        const person: Person = {
-          id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-          name: row['Person Name'],
-          title: row['Person Title'] || '',
-          email: row['Person Email'] || ''
-        };
-        departmentMap.get(deptName)!.personnel.push(person);
-      }
-    });
-    
-    // Set parent relationships
-    uploadPreview.forEach(row => {
-      const deptName = row.Department;
-      const parentName = row['Parent Department'];
-      
-      if (parentName && departmentMap.has(parentName) && departmentMap.has(deptName)) {
-        const dept = departmentMap.get(deptName)!;
-        const parent = departmentMap.get(parentName)!;
-        
-        dept.parentId = parent.id;
-        if (!parent.children.includes(dept.id)) {
-          parent.children.push(dept.id);
-        }
-      }
-    });
-    
-    setOrgData({
-      levels: maxLevel,
-      departments: Array.from(departmentMap.values()),
-      layout: 'vertical',
-      showPersonnel: true
-    });
-    
-    setShowUploadModal(false);
-    setUploadPreview([]);
-    setCurrentStep(4);
-    saveToHistory('Import Data');
-  }, [uploadPreview, saveToHistory]);
-
-  // Export functions
-  const exportToPDF = useCallback(() => {
-    // Implementation would use a library like jsPDF
-    alert('PDF export functionality would be implemented here');
-  }, []);
-
-  const exportToPNG = useCallback(() => {
-    // Implementation would use html2canvas
-    alert('PNG export functionality would be implemented here');
-  }, []);
-
-  const exportToExcel = useCallback(() => {
-    const data = orgData.departments.flatMap(dept => 
-      dept.personnel.length > 0 
-        ? dept.personnel.map(person => ({
-            Level: dept.level,
-            Department: dept.name,
-            'Person Name': person.name,
-            'Person Title': person.title,
-            'Person Email': person.email || '',
-            'Parent Department': orgData.departments.find(d => d.id === dept.parentId)?.name || ''
-          }))
-        : [{
-            Level: dept.level,
-            Department: dept.name,
-            'Person Name': '',
-            'Person Title': '',
-            'Person Email': '',
-            'Parent Department': orgData.departments.find(d => d.id === dept.parentId)?.name || ''
-          }]
-    );
-    
-    const headers = Object.keys(data[0] || {});
-    const csvContent = [headers, ...data.map(row => headers.map(h => row[h as keyof typeof row]))]
-      .map(row => row.map(cell => `"${cell}"`).join(','))
-      .join('\n');
-    
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'org-chart-data.csv';
-    link.click();
-    URL.revokeObjectURL(url);
-  }, [orgData]);
-
-  // Enhanced input component with validation
-  const ValidatedInput = ({ 
-    formId, 
-    fieldName, 
-    rules, 
-    placeholder, 
-    type = 'text',
-    value,
-    onChange,
-    className = '',
-    disabled = false,
-    helpText = ''
-  }: {
-    formId: string;
-    fieldName: string;
-    rules: any;
-    placeholder: string;
-    type?: string;
-    value: string;
-    onChange: (value: string) => void;
-    className?: string;
-    disabled?: boolean;
-    helpText?: string;
-  }) => {
-    const fieldValidation = getFieldValidation(formId, fieldName);
-    const showError = fieldValidation.touched && !fieldValidation.isValid && fieldValidation.error;
-    const showSuccess = fieldValidation.touched && fieldValidation.isValid && fieldValidation.value.trim().length > 0;
-    
-    return (
-      <div className="space-y-1">
-        <div className="relative">
-          <input
-            type={type}
-            value={value}
-            onChange={(e) => {
-              onChange(e.target.value);
-              updateFieldValidation(formId, fieldName, e.target.value, rules);
-            }}
-            placeholder={placeholder}
-            disabled={disabled}
-            className={`
-              w-full px-4 py-3 border rounded-lg transition-all duration-200 pr-10
-              ${showError 
-                ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-200' 
-                : showSuccess 
-                ? 'border-green-300 bg-green-50 focus:border-green-500 focus:ring-green-200'
-                : 'border-slate-300 focus:border-indigo-500 focus:ring-indigo-200'
-              }
-              focus:ring-2 focus:outline-none
-              disabled:bg-slate-100 disabled:cursor-not-allowed
-              ${className}
-            `}
-          />
-          
-          {/* Validation status icon */}
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-            {fieldValidation.validating && (
-              <div className="w-4 h-4 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin"></div>
-            )}
-            {!fieldValidation.validating && showError && (
-              <XCircle className="w-5 h-5 text-red-500" />
-            )}
-            {!fieldValidation.validating && showSuccess && (
-              <CheckCircle2 className="w-5 h-5 text-green-500" />
-            )}
-          </div>
-        </div>
-        
-        {/* Help text */}
-        {helpText && !showError && (
-          <p className="text-xs text-slate-500 flex items-center">
-            <HelpCircle className="w-3 h-3 mr-1" />
-            {helpText}
-          </p>
-        )}
-        
-        {/* Error message */}
-        {showError && (
-          <p className="text-sm text-red-600 flex items-center animate-in slide-in-from-top-1 duration-200">
-            <AlertCircle className="w-4 h-4 mr-1 flex-shrink-0" />
-            {fieldValidation.error}
-          </p>
-        )}
-        
-        {/* Success message */}
-        {showSuccess && rules.required && (
-          <p className="text-sm text-green-600 flex items-center animate-in slide-in-from-top-1 duration-200">
-            <CheckCircle2 className="w-4 h-4 mr-1 flex-shrink-0" />
-            Looks good!
-          </p>
-        )}
-      </div>
-    );
-  };
-  
-  // Success notification component
-  const SuccessNotification = ({ formId, message }: { formId: string; message: string }) => {
-    if (!submitSuccess[formId]) return null;
-    
-    return (
-      <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-right-full duration-300">
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 shadow-lg max-w-sm">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-              <CheckCircle2 className="w-5 h-5 text-green-600" />
-            </div>
-            <div>
-              <p className="font-medium text-green-900">Success!</p>
-              <p className="text-sm text-green-700">{message}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // Render functions for each step
-  const renderStepIndicator = () => (
-    <div className="flex items-center justify-center space-x-4 mb-8">
-      {steps.map((step, index) => (
-        <div key={step.id} className="flex items-center">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-            currentStep >= step.id
-              ? 'bg-indigo-600 text-white'
-              : 'bg-slate-200 text-slate-600'
-          }`}>
-            {currentStep > step.id ? (
-              <Check className="w-5 h-5" />
-            ) : (
-              step.id
-            )}
-          </div>
-          <div className="ml-3 text-left">
-            <p className={`text-sm font-medium ${
-              currentStep >= step.id ? 'text-slate-900' : 'text-slate-500'
-            }`}>
-              {step.title}
-            </p>
-            <p className="text-xs text-slate-500">{step.description}</p>
-          </div>
-          {index < steps.length - 1 && (
-            <ArrowRight className="w-5 h-5 text-slate-400 mx-4" />
-          )}
-        </div>
-      ))}
-    </div>
-  );
-
-  const renderStep1 = () => (
-    <div className="space-y-8">
-      <SuccessNotification formId="levels" message="Organization levels updated successfully!" />
-      
-      <div className="card p-8">
-        <h3 className="text-xl font-semibold text-slate-900 mb-6 flex items-center">
-          <Layers className="w-6 h-6 mr-3 text-indigo-600" />
-          Organization Setup
-        </h3>
-        
-        <div className="space-y-6">
-          <div>
-            <label className="form-label">Number of Organizational Levels</label>
-            <div className="flex items-center space-x-4">
-              <input
-                type="range"
-                min="1"
-                max="10"
-                value={orgData.levels}
-                onChange={(e) => {
-                  const newValue = parseInt(e.target.value);
-                  setOrgData(prev => ({ ...prev, levels: newValue }));
-                  updateFieldValidation('levels', 'levels', newValue.toString(), validationRules.levels);
-                  showSuccessMessage('levels');
-                }}
-                className="flex-1 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
-              />
-              <div className="w-16 text-center">
-                <span className="text-2xl font-bold text-indigo-600">{orgData.levels}</span>
-                <p className="text-xs text-slate-500">levels</p>
-              </div>
-            </div>
-            <div className="mt-2 flex justify-between text-xs text-slate-500">
-              <span>1 level</span>
-              <span>10 levels</span>
-            </div>
-            
-            {/* Real-time validation feedback */}
-            <div className="mt-3 p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
-              <div className="flex items-center space-x-2">
-                <CheckCircle2 className="w-4 h-4 text-indigo-600" />
-                <span className="text-sm text-indigo-800">
-                  Perfect! {orgData.levels} level{orgData.levels !== 1 ? 's' : ''} selected
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-            <div className="flex items-start space-x-3">
-              <Info className="w-5 h-5 text-indigo-600 mt-0.5" />
-              <div>
-                <h4 className="font-medium text-indigo-900">Level Guidelines</h4>
-                <ul className="text-sm text-indigo-700 mt-2 space-y-1">
-                  <li>• Level 1: Executive/C-Suite</li>
-                  <li>• Level 2: Vice Presidents/Directors</li>
-                  <li>• Level 3: Department Heads/Managers</li>
-                  <li>• Level 4+: Teams and Individual Contributors</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex justify-end">
-        <button
-          onClick={() => setCurrentStep(2)}
-          className="btn btn-primary btn-lg"
-        >
-          <span>Next: Manage Departments</span>
-          <ArrowRight className="w-4 h-4" />
+  return (
+    <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 ${
+      type === 'success' ? 'bg-green-500 text-white' : 
+      type === 'error' ? 'bg-red-500 text-white' : 
+      'bg-blue-500 text-white'
+    }`}>
+      <div className="flex items-center space-x-2">
+        {type === 'success' && <CheckCircle className="w-5 h-5" />}
+        {type === 'error' && <AlertCircle className="w-5 h-5" />}
+        {type === 'info' && <Info className="w-5 h-5" />}
+        <span>{message}</span>
+        <button onClick={onClose} className="ml-2">
+          <X className="w-4 h-4" />
         </button>
       </div>
     </div>
   );
+};
 
-  const renderStep2 = () => (
-    <div className="space-y-8">
-      <SuccessNotification formId="department-list" message="Department changes saved successfully!" />
-      
-      <div className="card p-8">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-semibold text-slate-900 flex items-center">
-            <Building className="w-6 h-6 mr-3 text-indigo-600" />
-            Department & Personnel Management
-          </h3>
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={downloadTemplate}
-              className="btn btn-secondary btn-md"
-            >
-              <FileSpreadsheet className="w-4 h-4" />
-              Download Template
-            </button>
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="btn btn-success btn-md"
-              disabled={isUploading}
-            >
-              <Upload className="w-4 h-4" />
-              {isUploading ? 'Uploading...' : 'Upload Excel'}
-            </button>
+// Validated input component
+const ValidatedInput = ({ 
+  label, 
+  value, 
+  onChange, 
+  validator, 
+  placeholder, 
+  required = false,
+  type = 'text',
+  className = ''
+}) => {
+  const [touched, setTouched] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
+  const [validation, setValidation] = useState({ isValid: true, message: '' });
+
+  const validateInput = useCallback((inputValue) => {
+    if (!validator) return { isValid: true, message: '' };
+    return validator(inputValue);
+  }, [validator]);
+
+  useEffect(() => {
+    if (touched && value !== undefined) {
+      setIsValidating(true);
+      const timer = setTimeout(() => {
+        const result = validateInput(value);
+        setValidation(result);
+        setIsValidating(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [value, touched, validateInput]);
+
+  const handleBlur = () => {
+    setTouched(true);
+  };
+
+  const getInputClassName = () => {
+    let baseClass = `w-full px-4 py-3 border rounded-lg transition-all duration-200 ${className}`;
+    
+    if (!touched) {
+      return `${baseClass} border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200`;
+    }
+    
+    if (isValidating) {
+      return `${baseClass} border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200`;
+    }
+    
+    if (validation.isValid) {
+      return `${baseClass} border-green-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 bg-green-50`;
+    } else {
+      return `${baseClass} border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 bg-red-50`;
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-gray-700">
+        {label}
+        {required && <span className="text-red-500 ml-1">*</span>}
+      </label>
+      <div className="relative">
+        <input
+          type={type}
+          value={value || ''}
+          onChange={(e) => onChange(e.target.value)}
+          onBlur={handleBlur}
+          placeholder={placeholder}
+          className={getInputClassName()}
+        />
+        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+          {isValidating && <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />}
+          {!isValidating && touched && validation.isValid && <CheckCircle className="w-4 h-4 text-green-500" />}
+          {!isValidating && touched && !validation.isValid && <AlertCircle className="w-4 h-4 text-red-500" />}
+        </div>
+      </div>
+      {touched && validation.message && (
+        <div className={`text-sm flex items-center space-x-1 ${
+          validation.isValid ? 'text-green-600' : 'text-red-600'
+        }`}>
+          {validation.isValid ? (
+            <CheckCircle className="w-4 h-4" />
+          ) : (
+            <AlertCircle className="w-4 h-4" />
+          )}
+          <span>{validation.message}</span>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export function OrgChartBuilder() {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [orgLevels, setOrgLevels] = useState(3);
+  const [departments, setDepartments] = useState([]);
+  const [personnel, setPersonnel] = useState([]);
+  const [hierarchy, setHierarchy] = useState([]);
+  const [showPersonnel, setShowPersonnel] = useState(true);
+  const [zoomLevel, setZoomLevel] = useState(100);
+  const [layout, setLayout] = useState('vertical');
+  const [toast, setToast] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+
+  // Form states
+  const [newDepartment, setNewDepartment] = useState({
+    name: '',
+    color: '#3B82F6',
+    level: 1,
+    description: ''
+  });
+
+  const [newPerson, setNewPerson] = useState({
+    name: '',
+    title: '',
+    email: '',
+    departmentId: ''
+  });
+
+  const [editingDepartment, setEditingDepartment] = useState(null);
+  const [editingPerson, setEditingPerson] = useState(null);
+
+  const steps = [
+    { title: 'Setup Levels', description: 'Define organizational structure' },
+    { title: 'Departments', description: 'Create departments and add personnel' },
+    { title: 'Hierarchy', description: 'Define reporting relationships' },
+    { title: 'Visualize', description: 'View and export your org chart' }
+  ];
+
+  const showToast = (message, type = 'info') => {
+    setToast({ message, type });
+  };
+
+  const saveToHistory = () => {
+    const state = { departments, personnel, hierarchy, orgLevels };
+    const newHistory = history.slice(0, historyIndex + 1);
+    newHistory.push(state);
+    setHistory(newHistory);
+    setHistoryIndex(newHistory.length - 1);
+  };
+
+  const undo = () => {
+    if (historyIndex > 0) {
+      const prevState = history[historyIndex - 1];
+      setDepartments(prevState.departments);
+      setPersonnel(prevState.personnel);
+      setHierarchy(prevState.hierarchy);
+      setOrgLevels(prevState.orgLevels);
+      setHistoryIndex(historyIndex - 1);
+      showToast('Action undone', 'info');
+    }
+  };
+
+  const redo = () => {
+    if (historyIndex < history.length - 1) {
+      const nextState = history[historyIndex + 1];
+      setDepartments(nextState.departments);
+      setPersonnel(nextState.personnel);
+      setHierarchy(nextState.hierarchy);
+      setOrgLevels(nextState.orgLevels);
+      setHistoryIndex(historyIndex + 1);
+      showToast('Action redone', 'info');
+    }
+  };
+
+  const addDepartment = () => {
+    const nameValidation = validateDepartmentName(newDepartment.name);
+    if (!nameValidation.isValid) {
+      showToast(nameValidation.message, 'error');
+      return;
+    }
+
+    if (departments.some(dept => dept.name.toLowerCase() === newDepartment.name.toLowerCase())) {
+      showToast('Department name already exists', 'error');
+      return;
+    }
+
+    saveToHistory();
+    const department = {
+      id: Date.now().toString(),
+      ...newDepartment,
+      name: newDepartment.name.trim()
+    };
+    
+    setDepartments([...departments, department]);
+    setNewDepartment({ name: '', color: '#3B82F6', level: 1, description: '' });
+    showToast('Department added successfully!', 'success');
+  };
+
+  const updateDepartment = (id, updates) => {
+    if (updates.name) {
+      const nameValidation = validateDepartmentName(updates.name);
+      if (!nameValidation.isValid) {
+        showToast(nameValidation.message, 'error');
+        return;
+      }
+
+      if (departments.some(dept => dept.id !== id && dept.name.toLowerCase() === updates.name.toLowerCase())) {
+        showToast('Department name already exists', 'error');
+        return;
+      }
+    }
+
+    saveToHistory();
+    setDepartments(departments.map(dept => 
+      dept.id === id ? { ...dept, ...updates, name: updates.name?.trim() || dept.name } : dept
+    ));
+    setEditingDepartment(null);
+    showToast('Department updated successfully!', 'success');
+  };
+
+  const deleteDepartment = (id) => {
+    saveToHistory();
+    setDepartments(departments.filter(dept => dept.id !== id));
+    setPersonnel(personnel.filter(person => person.departmentId !== id));
+    setHierarchy(hierarchy.filter(rel => rel.parentId !== id && rel.childId !== id));
+    showToast('Department deleted successfully!', 'success');
+  };
+
+  const addPerson = () => {
+    const nameValidation = validatePersonName(newPerson.name);
+    const titleValidation = validateJobTitle(newPerson.title);
+    const emailValidation = validateEmail(newPerson.email);
+
+    if (!nameValidation.isValid) {
+      showToast(nameValidation.message, 'error');
+      return;
+    }
+    if (!titleValidation.isValid) {
+      showToast(titleValidation.message, 'error');
+      return;
+    }
+    if (!emailValidation.isValid) {
+      showToast(emailValidation.message, 'error');
+      return;
+    }
+    if (!newPerson.departmentId) {
+      showToast('Please select a department', 'error');
+      return;
+    }
+
+    saveToHistory();
+    const person = {
+      id: Date.now().toString(),
+      ...newPerson,
+      name: newPerson.name.trim(),
+      title: newPerson.title.trim(),
+      email: newPerson.email.trim()
+    };
+    
+    setPersonnel([...personnel, person]);
+    setNewPerson({ name: '', title: '', email: '', departmentId: '' });
+    showToast('Person added successfully!', 'success');
+  };
+
+  const updatePerson = (id, updates) => {
+    if (updates.name) {
+      const nameValidation = validatePersonName(updates.name);
+      if (!nameValidation.isValid) {
+        showToast(nameValidation.message, 'error');
+        return;
+      }
+    }
+    if (updates.title) {
+      const titleValidation = validateJobTitle(updates.title);
+      if (!titleValidation.isValid) {
+        showToast(titleValidation.message, 'error');
+        return;
+      }
+    }
+    if (updates.email !== undefined) {
+      const emailValidation = validateEmail(updates.email);
+      if (!emailValidation.isValid) {
+        showToast(emailValidation.message, 'error');
+        return;
+      }
+    }
+
+    saveToHistory();
+    setPersonnel(personnel.map(person => 
+      person.id === id ? { 
+        ...person, 
+        ...updates,
+        name: updates.name?.trim() || person.name,
+        title: updates.title?.trim() || person.title,
+        email: updates.email?.trim() || person.email
+      } : person
+    ));
+    setEditingPerson(null);
+    showToast('Person updated successfully!', 'success');
+  };
+
+  const deletePerson = (id) => {
+    saveToHistory();
+    setPersonnel(personnel.filter(person => person.id !== id));
+    showToast('Person deleted successfully!', 'success');
+  };
+
+  const downloadTemplate = () => {
+    const headers = ['Level', 'Department', 'Person', 'Job Title', 'Email', 'Parent Department'];
+    const sampleData = [
+      ['1', 'Executive', 'John Smith', 'CEO', 'john@company.com', ''],
+      ['2', 'Engineering', 'Jane Doe', 'VP Engineering', 'jane@company.com', 'Executive'],
+      ['2', 'Sales', 'Bob Johnson', 'VP Sales', 'bob@company.com', 'Executive'],
+      ['3', 'Frontend', 'Alice Brown', 'Frontend Lead', 'alice@company.com', 'Engineering'],
+      ['3', 'Backend', 'Charlie Wilson', 'Backend Lead', 'charlie@company.com', 'Engineering']
+    ];
+
+    const csvContent = [headers, ...sampleData]
+      .map(row => row.map(field => `"${field}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'org-chart-template.csv';
+    link.click();
+    window.URL.revokeObjectURL(url);
+    showToast('Template downloaded successfully!', 'success');
+  };
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text = e.target.result;
+        const lines = text.split('\n').filter(line => line.trim());
+        const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+        
+        if (!headers.includes('Department') || !headers.includes('Level')) {
+          showToast('Invalid file format. Please use the provided template.', 'error');
+          return;
+        }
+
+        const newDepartments = [];
+        const newPersonnel = [];
+        const newHierarchy = [];
+
+        for (let i = 1; i < lines.length; i++) {
+          const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim());
+          const rowData = {};
+          headers.forEach((header, index) => {
+            rowData[header] = values[index] || '';
+          });
+
+          if (rowData.Department) {
+            const deptId = `dept-${i}`;
+            if (!newDepartments.find(d => d.name === rowData.Department)) {
+              newDepartments.push({
+                id: deptId,
+                name: rowData.Department,
+                level: parseInt(rowData.Level) || 1,
+                color: '#3B82F6',
+                description: ''
+              });
+            }
+
+            if (rowData.Person) {
+              newPersonnel.push({
+                id: `person-${i}`,
+                name: rowData.Person,
+                title: rowData['Job Title'] || '',
+                email: rowData.Email || '',
+                departmentId: newDepartments.find(d => d.name === rowData.Department)?.id || deptId
+              });
+            }
+
+            if (rowData['Parent Department']) {
+              const parentDept = newDepartments.find(d => d.name === rowData['Parent Department']);
+              const childDept = newDepartments.find(d => d.name === rowData.Department);
+              if (parentDept && childDept) {
+                newHierarchy.push({
+                  id: `rel-${i}`,
+                  parentId: parentDept.id,
+                  childId: childDept.id
+                });
+              }
+            }
+          }
+        }
+
+        saveToHistory();
+        setDepartments(newDepartments);
+        setPersonnel(newPersonnel);
+        setHierarchy(newHierarchy);
+        setOrgLevels(Math.max(...newDepartments.map(d => d.level)));
+        showToast(`Imported ${newDepartments.length} departments and ${newPersonnel.length} people!`, 'success');
+        
+      } catch (error) {
+        showToast('Error reading file. Please check the format.', 'error');
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 0:
+        return (
+          <div className="space-y-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-blue-900 mb-4">Organization Levels</h3>
+              <p className="text-blue-700 mb-6">
+                Define how many hierarchical levels your organization has. This helps structure your departments properly.
+              </p>
+              
+              <div className="space-y-4">
+                <label className="block text-sm font-medium text-gray-700">
+                  Number of Levels (1-10)
+                </label>
+                <div className="flex items-center space-x-4">
+                  <input
+                    type="range"
+                    min="1"
+                    max="10"
+                    value={orgLevels}
+                    onChange={(e) => setOrgLevels(parseInt(e.target.value))}
+                    className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
+                    {orgLevels}
+                  </div>
+                </div>
+                
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-medium text-gray-900 mb-2">Typical Structure:</h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• Level 1: Executive (CEO, President)</li>
+                    <li>• Level 2: Vice Presidents, Directors</li>
+                    <li>• Level 3: Managers, Department Heads</li>
+                    <li>• Level 4+: Team Leads, Individual Contributors</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 1:
+        return (
+          <div className="space-y-6">
+            {/* Add Department Form */}
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Department</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <ValidatedInput
+                  label="Department Name"
+                  value={newDepartment.name}
+                  onChange={(value) => setNewDepartment({...newDepartment, name: value})}
+                  validator={validateDepartmentName}
+                  placeholder="e.g., Engineering, Sales, Marketing"
+                  required
+                />
+                
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Organizational Level <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={newDepartment.level}
+                    onChange={(e) => setNewDepartment({...newDepartment, level: parseInt(e.target.value)})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                  >
+                    {Array.from({length: orgLevels}, (_, i) => (
+                      <option key={i + 1} value={i + 1}>Level {i + 1}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">Color</label>
+                  <input
+                    type="color"
+                    value={newDepartment.color}
+                    onChange={(e) => setNewDepartment({...newDepartment, color: e.target.value})}
+                    className="w-full h-12 border border-gray-300 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <ValidatedInput
+                  label="Description"
+                  value={newDepartment.description}
+                  onChange={(value) => setNewDepartment({...newDepartment, description: value})}
+                  placeholder="Brief description of the department"
+                />
+              </div>
+              
+              <button
+                onClick={addDepartment}
+                disabled={!newDepartment.name.trim()}
+                className="mt-4 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Add Department
+              </button>
+            </div>
+
+            {/* Departments List */}
+            {departments.length > 0 && (
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Departments ({departments.length})</h3>
+                <div className="space-y-3">
+                  {departments.map((dept) => (
+                    <div key={dept.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <div 
+                          className="w-4 h-4 rounded-full"
+                          style={{ backgroundColor: dept.color }}
+                        />
+                        <div>
+                          <div className="font-medium text-gray-900">{dept.name}</div>
+                          <div className="text-sm text-gray-500">Level {dept.level}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => setEditingDepartment(dept)}
+                          className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteDepartment(dept.id)}
+                          className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Add Personnel Form */}
+            {departments.length > 0 && (
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Personnel</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <ValidatedInput
+                    label="Full Name"
+                    value={newPerson.name}
+                    onChange={(value) => setNewPerson({...newPerson, name: value})}
+                    validator={validatePersonName}
+                    placeholder="e.g., John Smith"
+                    required
+                  />
+
+                  <ValidatedInput
+                    label="Job Title"
+                    value={newPerson.title}
+                    onChange={(value) => setNewPerson({...newPerson, title: value})}
+                    validator={validateJobTitle}
+                    placeholder="e.g., Software Engineer"
+                    required
+                  />
+
+                  <ValidatedInput
+                    label="Email"
+                    value={newPerson.email}
+                    onChange={(value) => setNewPerson({...newPerson, email: value})}
+                    validator={validateEmail}
+                    placeholder="john@company.com"
+                    type="email"
+                  />
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Department <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={newPerson.departmentId}
+                      onChange={(e) => setNewPerson({...newPerson, departmentId: e.target.value})}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    >
+                      <option value="">Select Department</option>
+                      {departments.map((dept) => (
+                        <option key={dept.id} value={dept.id}>{dept.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                
+                <button
+                  onClick={addPerson}
+                  disabled={!newPerson.name.trim() || !newPerson.title.trim() || !newPerson.departmentId}
+                  className="mt-4 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Add Person
+                </button>
+              </div>
+            )}
+
+            {/* Personnel List */}
+            {personnel.length > 0 && (
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Personnel ({personnel.length})</h3>
+                <div className="space-y-3">
+                  {personnel.map((person) => {
+                    const dept = departments.find(d => d.id === person.departmentId);
+                    return (
+                      <div key={person.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div className="flex items-center space-x-4">
+                          <div 
+                            className="w-4 h-4 rounded-full"
+                            style={{ backgroundColor: dept?.color || '#gray' }}
+                          />
+                          <div>
+                            <div className="font-medium text-gray-900">{person.name}</div>
+                            <div className="text-sm text-gray-500">{person.title} • {dept?.name}</div>
+                            {person.email && (
+                              <div className="text-xs text-gray-400">{person.email}</div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => setEditingPerson(person)}
+                            className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => deletePerson(person.id)}
+                            className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="space-y-6">
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Define Hierarchy</h3>
+              <p className="text-gray-600 mb-6">
+                Set up reporting relationships between departments. Child departments report to their parent departments.
+              </p>
+              
+              {departments.length > 1 ? (
+                <div className="space-y-4">
+                  {departments.map((dept) => (
+                    <div key={dept.id} className="p-4 bg-gray-50 rounded-lg">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <div 
+                            className="w-4 h-4 rounded-full"
+                            style={{ backgroundColor: dept.color }}
+                          />
+                          <span className="font-medium text-gray-900">{dept.name}</span>
+                          <span className="text-sm text-gray-500">Level {dept.level}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="ml-7">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Reports to:
+                        </label>
+                        <select
+                          value={hierarchy.find(h => h.childId === dept.id)?.parentId || ''}
+                          onChange={(e) => {
+                            const parentId = e.target.value;
+                            const newHierarchy = hierarchy.filter(h => h.childId !== dept.id);
+                            if (parentId) {
+                              newHierarchy.push({
+                                id: `${parentId}-${dept.id}`,
+                                parentId,
+                                childId: dept.id
+                              });
+                            }
+                            setHierarchy(newHierarchy);
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                        >
+                          <option value="">No parent (Top level)</option>
+                          {departments
+                            .filter(d => d.id !== dept.id && d.level < dept.level)
+                            .map((parentDept) => (
+                              <option key={parentDept.id} value={parentDept.id}>
+                                {parentDept.name} (Level {parentDept.level})
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <Building2 className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                  <p>Add at least 2 departments to define hierarchy relationships.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-6">
+            {/* Controls */}
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Organization Chart</h3>
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => setZoomLevel(Math.max(50, zoomLevel - 25))}
+                      className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    >
+                      <ZoomOut className="w-4 h-4" />
+                    </button>
+                    <span className="text-sm font-medium text-gray-700">{zoomLevel}%</span>
+                    <button
+                      onClick={() => setZoomLevel(Math.min(200, zoomLevel + 25))}
+                      className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    >
+                      <ZoomIn className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => setZoomLevel(100)}
+                      className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                    </button>
+                  </div>
+                  
+                  <button
+                    onClick={() => setShowPersonnel(!showPersonnel)}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                      showPersonnel 
+                        ? 'bg-blue-100 text-blue-700' 
+                        : 'bg-gray-100 text-gray-700'
+                    }`}
+                  >
+                    {showPersonnel ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                    <span>Personnel</span>
+                  </button>
+                </div>
+              </div>
+              
+              {departments.length > 0 ? (
+                <div 
+                  className="overflow-auto border border-gray-200 rounded-lg bg-gray-50 p-8"
+                  style={{ transform: `scale(${zoomLevel / 100})`, transformOrigin: 'top left' }}
+                >
+                  <OrgChart 
+                    departments={departments}
+                    personnel={personnel}
+                    hierarchy={hierarchy}
+                    showPersonnel={showPersonnel}
+                    layout={layout}
+                  />
+                </div>
+              ) : (
+                <div className="text-center py-12 text-gray-500">
+                  <Building2 className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                  <p>No departments to display. Go back and add some departments first.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Toast Notifications */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Organization Chart Builder</h1>
+          <p className="text-gray-600">Create and visualize your organizational structure</p>
+        </div>
+        
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={undo}
+            disabled={historyIndex <= 0}
+            className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Undo"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </button>
+          <button
+            onClick={redo}
+            disabled={historyIndex >= history.length - 1}
+            className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Redo"
+          >
+            <ArrowRight className="w-4 h-4" />
+          </button>
+          <button
+            onClick={downloadTemplate}
+            className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            <span>Template</span>
+          </button>
+          <label className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
+            <Upload className="w-4 h-4" />
+            <span>Import</span>
             <input
-              ref={fileInputRef}
               type="file"
               accept=".csv,.xlsx,.xls"
               onChange={handleFileUpload}
               className="hidden"
             />
-            <button
-              onClick={addDepartment}
-              className="btn btn-primary btn-md"
-            >
-              <Plus className="w-4 h-4" />
-              Add Department
-            </button>
-          </div>
+          </label>
         </div>
+      </div>
 
-        {/* Validation Summary */}
-        {orgData.departments.length === 0 && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-            <div className="flex items-start space-x-3">
-              <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
-              <div>
-                <p className="text-amber-800 font-medium">No departments added yet</p>
-                <p className="text-sm text-amber-700 mt-1">
-                  Add at least one department to continue building your organization chart.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="space-y-6">
-          {orgData.departments.map((dept) => (
-            <div key={dept.id} className="border border-slate-200 rounded-lg p-6 relative">
-              <SuccessNotification formId={`department-${dept.id}`} message="Department updated successfully!" />
-              
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-4">
-                  <div
-                    className="w-6 h-6 rounded-full"
-                    style={{ backgroundColor: dept.color }}
-                  ></div>
-                  <div className="flex-1 space-y-2">
-                    <ValidatedInput
-                      formId={`department-${dept.id}`}
-                      fieldName="departmentName"
-                      rules={validationRules.departmentName}
-                      value={dept.name}
-                      onChange={(value) => updateDepartment(dept.id, { name: value })}
-                      placeholder="Enter department name"
-                      helpText="Use a clear, descriptive name for this department"
-                    />
-                    <div className="flex items-center space-x-4">
-                      <div>
-                        <label className="text-xs text-slate-600">Level</label>
-                        <select
-                          value={dept.level}
-                          onChange={(e) => updateDepartment(dept.id, { level: parseInt(e.target.value) })}
-                          className="form-select text-sm"
-                        >
-                          {Array.from({ length: orgData.levels }, (_, i) => (
-                            <option key={i + 1} value={i + 1}>Level {i + 1}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="flex-1">
-                        <label className="text-xs text-slate-600">Description</label>
-                        <input
-                          type="text"
-                          value={dept.description}
-                          onChange={(e) => updateDepartment(dept.id, { description: e.target.value })}
-                          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                          placeholder="Optional description"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={() => deleteDepartment(dept.id)}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Personnel Section */}
-              <div className="border-t border-slate-200 pt-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-slate-900 flex items-center">
-                    <Users className="w-4 h-4 mr-2" />
-                    Personnel ({dept.personnel.length})
-                  </h4>
-                  <button
-                    onClick={() => addPerson(dept.id)}
-                    className="btn btn-ghost btn-sm"
-                  >
-                    <Plus className="w-3 h-3" />
-                    Add Person
-                  </button>
-                </div>
-
-                <div className="space-y-3">
-                  {dept.personnel.map((person) => (
-                    <div key={person.id} className="flex items-center space-x-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
-                      <div className="flex-1 grid grid-cols-3 gap-3">
-                        <ValidatedInput
-                          formId={`person-${person.id}`}
-                          fieldName="personName"
-                          rules={validationRules.personName}
-                          value={person.name}
-                          onChange={(value) => updatePerson(dept.id, person.id, { name: value })}
-                          placeholder="Full name"
-                          helpText="Enter the person's full name"
-                        />
-                        <ValidatedInput
-                          formId={`person-${person.id}`}
-                          fieldName="personTitle"
-                          rules={validationRules.personTitle}
-                          value={person.title}
-                          onChange={(value) => updatePerson(dept.id, person.id, { title: value })}
-                          placeholder="Job title"
-                          helpText="Enter their job title or role"
-                        />
-                        <ValidatedInput
-                          formId={`person-${person.id}`}
-                          fieldName="personEmail"
-                          rules={validationRules.personEmail}
-                          type="email"
-                          value={person.email || ''}
-                          onChange={(value) => updatePerson(dept.id, person.id, { email: value })}
-                          placeholder="Email (optional)"
-                          helpText="Optional: work email address"
-                        />
-                      </div>
-                      <button
-                        onClick={() => deletePerson(dept.id, person.id)}
-                        className="p-1 text-red-600 hover:bg-red-100 rounded transition-colors"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ))}
-                  
-                  {dept.personnel.length === 0 && (
-                    <div className="text-center py-4 text-slate-500 text-sm">
-                      No personnel added yet. Click "Add Person" to get started.
-                    </div>
+      {/* Progress Steps */}
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="flex items-center justify-between">
+          {steps.map((step, index) => (
+            <div key={index} className="flex items-center">
+              <div className="flex items-center">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-medium transition-colors ${
+                  index <= currentStep
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-600'
+                }`}>
+                  {index < currentStep ? (
+                    <CheckCircle className="w-5 h-5" />
+                  ) : (
+                    index + 1
                   )}
                 </div>
-              </div>
-            </div>
-          ))}
-
-          {orgData.departments.length === 0 && (
-            <div className="text-center py-12 text-slate-500">
-              <Building className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-              <h3 className="text-lg font-medium text-slate-900 mb-2">No departments yet</h3>
-              <p className="mb-4">Get started by adding your first department or uploading an Excel file.</p>
-              <div className="flex justify-center space-x-4">
-                <button onClick={addDepartment} className="btn btn-primary btn-md">
-                  <Plus className="w-4 h-4" />
-                  Add Department
-                </button>
-                <button onClick={downloadTemplate} className="btn btn-secondary btn-md">
-                  <FileSpreadsheet className="w-4 h-4" />
-                  Download Template
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="flex justify-between">
-        <button
-          onClick={() => setCurrentStep(1)}
-          className="btn btn-secondary btn-lg"
-        >
-          <ArrowRight className="w-4 h-4 rotate-180" />
-          <span>Back</span>
-        </button>
-        
-        <button
-          onClick={() => setCurrentStep(3)}
-          disabled={orgData.departments.length === 0}
-          className="btn btn-primary btn-lg disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <span>Next: Build Hierarchy</span>
-          <ArrowRight className="w-4 h-4" />
-        </button>
-      </div>
-    </div>
-  );
-
-  const renderStep3 = () => (
-    <div className="space-y-8">
-      <SuccessNotification formId="hierarchy" message="Hierarchy relationships updated successfully!" />
-      
-      <div className="card p-8">
-        <h3 className="text-xl font-semibold text-slate-900 mb-6 flex items-center">
-          <Network className="w-6 h-6 mr-3 text-indigo-600" />
-          Build Hierarchy
-        </h3>
-        
-        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-start space-x-3">
-            <Info className="w-5 h-5 text-blue-600 mt-0.5" />
-            <div>
-              <h4 className="font-medium text-blue-900">How to Build Hierarchy</h4>
-              <ul className="text-sm text-blue-700 mt-2 space-y-1">
-                <li>• Select a department and choose its parent from the dropdown</li>
-                <li>• Departments at the same level are siblings</li>
-                <li>• Parent departments should be at a higher level (lower number)</li>
-                <li>• Leave parent empty for top-level departments</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          {orgData.departments
-            .sort((a, b) => a.level - b.level)
-            .map((dept) => (
-            <div key={dept.id} className="border border-slate-200 rounded-lg p-4 hover:border-slate-300 transition-colors">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div
-                    className="w-4 h-4 rounded-full"
-                    style={{ backgroundColor: dept.color }}
-                  ></div>
-                  <div>
-                    <h4 className="font-medium text-slate-900">{dept.name}</h4>
-                    <p className="text-sm text-slate-500">
-                      Level {dept.level} • {dept.personnel.length} personnel
-                    </p>
+                <div className="ml-3">
+                  <div className={`font-medium ${
+                    index <= currentStep ? 'text-gray-900' : 'text-gray-500'
+                  }`}>
+                    {step.title}
                   </div>
-                </div>
-                
-                <div className="flex items-center space-x-4">
-                  <div>
-                    <label className="text-xs text-slate-600">Reports to:</label>
-                    <select
-                      value={dept.parentId || ''}
-                      onChange={(e) => {
-                        setParentDepartment(dept.id, e.target.value || undefined);
-                        showSuccessMessage('hierarchy');
-                      }}
-                      className="form-select text-sm ml-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                    >
-                      <option value="">No parent (top level)</option>
-                      {orgData.departments
-                        .filter(d => d.id !== dept.id && d.level < dept.level)
-                        .map(parentDept => (
-                          <option key={parentDept.id} value={parentDept.id}>
-                            {parentDept.name} (Level {parentDept.level})
-                          </option>
-                        ))}
-                    </select>
-                  </div>
+                  <div className="text-sm text-gray-500">{step.description}</div>
                 </div>
               </div>
-              
-              {dept.children.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-slate-200">
-                  <p className="text-xs text-slate-600 mb-2 flex items-center">
-                    <Users className="w-3 h-3 mr-1" />
-                    Direct reports ({dept.children.length}):
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {dept.children.map(childId => {
-                      const child = orgData.departments.find(d => d.id === childId);
-                      return child ? (
-                        <span
-                          key={childId}
-                          className="px-3 py-1 bg-indigo-100 text-indigo-700 text-xs rounded-full border border-indigo-200"
-                        >
-                          {child.name}
-                        </span>
-                      ) : null;
-                    })}
-                  </div>
-                </div>
+              {index < steps.length - 1 && (
+                <div className={`w-16 h-px mx-8 transition-colors ${
+                  index < currentStep ? 'bg-blue-600' : 'bg-gray-300'
+                }`} />
               )}
             </div>
           ))}
         </div>
-        
-        {/* Hierarchy validation summary */}
-        <div className="mt-6 p-4 bg-slate-50 rounded-lg">
-          <h4 className="font-medium text-slate-900 mb-2 flex items-center">
-            <Info className="w-4 h-4 mr-2 text-slate-600" />
-            Hierarchy Summary
-          </h4>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-slate-600">Top-level departments:</span>
-              <span className="ml-2 font-medium text-slate-900">
-                {orgData.departments.filter(d => !d.parentId).length}
-              </span>
-            </div>
-            <div>
-              <span className="text-slate-600">Total relationships:</span>
-              <span className="ml-2 font-medium text-slate-900">
-                {orgData.departments.filter(d => d.parentId).length}
-              </span>
-            </div>
-          </div>
-        </div>
       </div>
-
-      <div className="flex justify-between">
-        <button
-          onClick={() => setCurrentStep(2)}
-          className="btn btn-secondary btn-lg"
-        >
-          <ArrowRight className="w-4 h-4 rotate-180" />
-          <span>Back</span>
-        </button>
-        
-        <button
-          onClick={() => setCurrentStep(4)}
-          className="btn btn-primary btn-lg"
-        >
-          <span>Next: Visualize Chart</span>
-          <ArrowRight className="w-4 h-4" />
-        </button>
-      </div>
-    </div>
-  );
-
-  const renderOrgChart = () => {
-    const getRootDepartments = () => 
-      orgData.departments.filter(dept => !dept.parentId);
-    
-    const renderDepartmentNode = (dept: Department, level: number = 0): JSX.Element => {
-      const children = orgData.departments.filter(d => d.parentId === dept.id);
-      
-      return (
-        <div key={dept.id} className="flex flex-col items-center">
-          <div
-            className={`relative p-4 rounded-lg border-2 shadow-sm transition-all cursor-pointer ${
-              selectedDepartment === dept.id 
-                ? 'border-indigo-500 bg-indigo-50' 
-                : 'border-slate-200 bg-white hover:shadow-md'
-            }`}
-            style={{ borderLeftColor: dept.color, borderLeftWidth: '4px' }}
-            onClick={() => setSelectedDepartment(dept.id)}
-          >
-            <div className="text-center">
-              <h4 className="font-semibold text-slate-900">{dept.name}</h4>
-              <p className="text-xs text-slate-500 mt-1">Level {dept.level}</p>
-              {orgData.showPersonnel && dept.personnel.length > 0 && (
-                <div className="mt-2 space-y-1">
-                  {dept.personnel.slice(0, 3).map(person => (
-                    <div key={person.id} className="text-xs">
-                      <div className="font-medium text-slate-700">{person.name}</div>
-                      <div className="text-slate-500">{person.title}</div>
-                    </div>
-                  ))}
-                  {dept.personnel.length > 3 && (
-                    <div className="text-xs text-slate-500">
-                      +{dept.personnel.length - 3} more
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {children.length > 0 && (
-            <div className="mt-8 flex space-x-8">
-              {children.map(child => renderDepartmentNode(child, level + 1))}
-            </div>
-          )}
-        </div>
-      );
-    };
-    
-    const rootDepartments = getRootDepartments();
-    
-    return (
-      <div 
-        ref={chartRef}
-        className="p-8 bg-slate-50 rounded-lg overflow-auto"
-        style={{ 
-          transform: `scale(${zoomLevel / 100})`,
-          transformOrigin: 'top left',
-          minHeight: '400px'
-        }}
-      >
-        {rootDepartments.length > 0 ? (
-          <div className={`flex ${orgData.layout === 'horizontal' ? 'flex-row' : 'flex-col'} items-start space-x-12`}>
-            {rootDepartments.map(dept => renderDepartmentNode(dept))}
-          </div>
-        ) : (
-          <div className="text-center py-12 text-slate-500">
-            <Building className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-            <p>No departments to display</p>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const renderStep4 = () => (
-    <div className="space-y-8">
-      <SuccessNotification formId="export" message="Chart exported successfully!" />
-      
-      <div className="card p-8">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-semibold text-slate-900 flex items-center">
-            <Eye className="w-6 h-6 mr-3 text-indigo-600" />
-            Organization Chart
-          </h3>
-          
-          <div className="flex items-center space-x-4">
-            {/* Chart Controls */}
-            <div className="flex items-center space-x-2 border border-slate-200 rounded-lg p-1">
-              <button
-                onClick={() => setZoomLevel(Math.max(50, zoomLevel - 10))}
-                className="p-1 hover:bg-slate-100 rounded"
-                title="Zoom Out"
-              >
-                <ZoomOut className="w-4 h-4" />
-              </button>
-              <span className="text-sm text-slate-600 px-2">{zoomLevel}%</span>
-              <button
-                onClick={() => setZoomLevel(Math.min(200, zoomLevel + 10))}
-                className="p-1 hover:bg-slate-100 rounded"
-                title="Zoom In"
-              >
-                <ZoomIn className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setZoomLevel(100)}
-                className="p-1 hover:bg-slate-100 rounded"
-                title="Reset Zoom"
-              >
-                <RotateCcw className="w-4 h-4" />
-              </button>
-            </div>
-            
-            {/* Layout Toggle */}
-            <select
-              value={orgData.layout}
-              onChange={(e) => setOrgData(prev => ({ ...prev, layout: e.target.value as 'vertical' | 'horizontal' }))}
-              className="form-select text-sm"
-            >
-              <option value="vertical">Vertical Layout</option>
-              <option value="horizontal">Horizontal Layout</option>
-            </select>
-            
-            {/* Show Personnel Toggle */}
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                checked={orgData.showPersonnel}
-                onChange={(e) => setOrgData(prev => ({ ...prev, showPersonnel: e.target.checked }))}
-                className="rounded"
-              />
-              <span className="text-sm text-slate-700">Show Personnel</span>
-            </label>
-            
-            {/* Export Options */}
-            <div className="flex items-center space-x-2">
-              <button 
-                onClick={() => {
-                  exportToPDF();
-                  showSuccessMessage('export');
-                }} 
-                className="btn btn-secondary btn-sm hover:bg-slate-100 transition-colors"
-              >
-                <FileText className="w-4 h-4" />
-                PDF
-              </button>
-              <button 
-                onClick={() => {
-                  exportToPNG();
-                  showSuccessMessage('export');
-                }} 
-                className="btn btn-secondary btn-sm hover:bg-slate-100 transition-colors"
-              >
-                <Image className="w-4 h-4" />
-                PNG
-              </button>
-              <button 
-                onClick={() => {
-                  exportToExcel();
-                  showSuccessMessage('export');
-                }} 
-                className="btn btn-secondary btn-sm hover:bg-slate-100 transition-colors"
-              >
-                <FileSpreadsheet className="w-4 h-4" />
-                Excel
-              </button>
-            </div>
-            
-            <button
-              onClick={() => setShowFullscreen(true)}
-              className="btn btn-ghost btn-sm"
-              title="Fullscreen"
-            >
-              <Maximize2 className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-        
-        {/* Chart Statistics */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
-          <div className="bg-indigo-50 p-4 rounded-lg">
-            <div className="text-2xl font-bold text-indigo-600 flex items-center">
-              {orgData.departments.length}
-              <CheckCircle2 className="w-5 h-5 ml-2 text-indigo-500" />
-            </div>
-            <div className="text-sm text-indigo-700">Departments</div>
-          </div>
-          <div className="bg-green-50 p-4 rounded-lg">
-            <div className="text-2xl font-bold text-green-600 flex items-center">
-              {orgData.departments.reduce((sum, dept) => sum + dept.personnel.length, 0)}
-              <CheckCircle2 className="w-5 h-5 ml-2 text-green-500" />
-            </div>
-            <div className="text-sm text-green-700">Total Personnel</div>
-          </div>
-          <div className="bg-purple-50 p-4 rounded-lg">
-            <div className="text-2xl font-bold text-purple-600 flex items-center">
-              {orgData.levels}
-              <CheckCircle2 className="w-5 h-5 ml-2 text-purple-500" />
-            </div>
-            <div className="text-sm text-purple-700">Levels</div>
-          </div>
-          <div className="bg-amber-50 p-4 rounded-lg">
-            <div className="text-2xl font-bold text-amber-600 flex items-center">
-              {orgData.departments.filter(d => !d.parentId).length}
-              <CheckCircle2 className="w-5 h-5 ml-2 text-amber-500" />
-            </div>
-            <div className="text-sm text-amber-700">Root Departments</div>
-          </div>
-        </div>
-        
-        {/* Organization Chart */}
-        {renderOrgChart()}
-      </div>
-
-      <div className="flex justify-between">
-        <button
-          onClick={() => setCurrentStep(3)}
-          className="btn btn-secondary btn-lg"
-        >
-          <ArrowRight className="w-4 h-4 rotate-180" />
-          <span>Back</span>
-        </button>
-        
-        <button
-          onClick={() => setCurrentStep(1)}
-          className="btn btn-ghost btn-lg"
-        >
-          <RotateCcw className="w-4 h-4" />
-          <span>Start Over</span>
-        </button>
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Organization Chart Builder</h1>
-          <p className="text-slate-600">Create comprehensive organizational hierarchies with departments and personnel</p>
-        </div>
-        
-        {/* Undo/Redo Controls */}
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={undo}
-            disabled={historyIndex <= 0}
-            className="btn btn-ghost btn-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 transition-colors"
-            title="Undo"
-          >
-            <Undo className="w-4 h-4" />
-          </button>
-          <button
-            onClick={redo}
-            disabled={historyIndex >= history.length - 1}
-            className="btn btn-ghost btn-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 transition-colors"
-            title="Redo"
-          >
-            <Redo className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-
-      {/* Step Indicator */}
-      {renderStepIndicator()}
 
       {/* Step Content */}
-      {currentStep === 1 && renderStep1()}
-      {currentStep === 2 && renderStep2()}
-      {currentStep === 3 && renderStep3()}
-      {currentStep === 4 && renderStep4()}
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        {renderStepContent()}
+      </div>
 
-      {/* Upload Preview Modal */}
-      {showUploadModal && (
+      {/* Navigation */}
+      <div className="flex justify-between">
+        <button
+          onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
+          disabled={currentStep === 0}
+          className="flex items-center space-x-2 px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Previous</span>
+        </button>
+
+        <button
+          onClick={() => setCurrentStep(Math.min(steps.length - 1, currentStep + 1))}
+          disabled={currentStep === steps.length - 1}
+          className="flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span>Next</span>
+          <ArrowRight className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Edit Department Modal */}
+      {editingDepartment && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-slate-900">Preview Uploaded Data</h3>
-              <button
-                onClick={() => setShowUploadModal(false)}
-                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="mb-4">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-sm text-blue-800 flex items-center">
-                  <Info className="w-4 h-4 mr-2" />
-                  Found {uploadPreview.length} rows. Review the data below and click "Import" to proceed.
-                </p>
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Edit Department</h3>
+            <div className="space-y-4">
+              <ValidatedInput
+                label="Department Name"
+                value={editingDepartment.name}
+                onChange={(value) => setEditingDepartment({...editingDepartment, name: value})}
+                validator={validateDepartmentName}
+                required
+              />
+              
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">Level</label>
+                <select
+                  value={editingDepartment.level}
+                  onChange={(e) => setEditingDepartment({...editingDepartment, level: parseInt(e.target.value)})}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                >
+                  {Array.from({length: orgLevels}, (_, i) => (
+                    <option key={i + 1} value={i + 1}>Level {i + 1}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">Color</label>
+                <input
+                  type="color"
+                  value={editingDepartment.color}
+                  onChange={(e) => setEditingDepartment({...editingDepartment, color: e.target.value})}
+                  className="w-full h-12 border border-gray-300 rounded-lg cursor-pointer"
+                />
               </div>
             </div>
             
-            <div className="overflow-x-auto mb-6">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Level</th>
-                    <th>Department</th>
-                    <th>Person Name</th>
-                    <th>Person Title</th>
-                    <th>Person Email</th>
-                    <th>Parent Department</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {uploadPreview.slice(0, 10).map((row, index) => (
-                    <tr key={index}>
-                      <td>{row.Level}</td>
-                      <td>{row.Department}</td>
-                      <td>{row['Person Name']}</td>
-                      <td>{row['Person Title']}</td>
-                      <td>{row['Person Email']}</td>
-                      <td>{row['Parent Department']}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {uploadPreview.length > 10 && (
-                <p className="text-sm text-slate-500 mt-2 text-center">
-                  ... and {uploadPreview.length - 10} more rows
-                </p>
-              )}
-            </div>
-            
-            <div className="flex justify-end space-x-4">
+            <div className="flex justify-end space-x-3 mt-6">
               <button
-                onClick={() => setShowUploadModal(false)}
-                className="btn btn-secondary btn-md"
+                onClick={() => setEditingDepartment(null)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button
-                onClick={processUploadedData}
-                className="btn btn-primary btn-md hover:bg-indigo-700 transition-colors"
+                onClick={() => updateDepartment(editingDepartment.id, editingDepartment)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
-                <CheckCircle2 className="w-4 h-4 mr-2" />
-                Import Data
+                Save Changes
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Fullscreen Chart Modal */}
-      {showFullscreen && (
-        <div className="fixed inset-0 bg-white z-50 overflow-auto">
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-slate-900">Organization Chart - Fullscreen</h2>
+      {/* Edit Person Modal */}
+      {editingPerson && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Edit Person</h3>
+            <div className="space-y-4">
+              <ValidatedInput
+                label="Full Name"
+                value={editingPerson.name}
+                onChange={(value) => setEditingPerson({...editingPerson, name: value})}
+                validator={validatePersonName}
+                required
+              />
+
+              <ValidatedInput
+                label="Job Title"
+                value={editingPerson.title}
+                onChange={(value) => setEditingPerson({...editingPerson, title: value})}
+                validator={validateJobTitle}
+                required
+              />
+
+              <ValidatedInput
+                label="Email"
+                value={editingPerson.email}
+                onChange={(value) => setEditingPerson({...editingPerson, email: value})}
+                validator={validateEmail}
+                type="email"
+              />
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">Department</label>
+                <select
+                  value={editingPerson.departmentId}
+                  onChange={(e) => setEditingPerson({...editingPerson, departmentId: e.target.value})}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                >
+                  {departments.map((dept) => (
+                    <option key={dept.id} value={dept.id}>{dept.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3 mt-6">
               <button
-                onClick={() => setShowFullscreen(false)}
-                className="btn btn-ghost btn-md hover:bg-slate-100 transition-colors"
+                onClick={() => setEditingPerson(null)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                <X className="w-5 h-5" />
-                Close
+                Cancel
+              </button>
+              <button
+                onClick={() => updatePerson(editingPerson.id, editingPerson)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Save Changes
               </button>
             </div>
-            {renderOrgChart()}
           </div>
         </div>
       )}
     </div>
   );
 }
+
+// Simple OrgChart component for visualization
+const OrgChart = ({ departments, personnel, hierarchy, showPersonnel }) => {
+  const getRootDepartments = () => {
+    const childIds = hierarchy.map(h => h.childId);
+    return departments.filter(dept => !childIds.includes(dept.id));
+  };
+
+  const getChildren = (parentId) => {
+    const childIds = hierarchy.filter(h => h.parentId === parentId).map(h => h.childId);
+    return departments.filter(dept => childIds.includes(dept.id));
+  };
+
+  const getDepartmentPersonnel = (deptId) => {
+    return personnel.filter(person => person.departmentId === deptId);
+  };
+
+  const DepartmentNode = ({ department, level = 0 }) => {
+    const children = getChildren(department.id);
+    const deptPersonnel = getDepartmentPersonnel(department.id);
+    const [isExpanded, setIsExpanded] = useState(true);
+
+    return (
+      <div className="flex flex-col items-center">
+        <div className="relative">
+          {level > 0 && (
+            <div className="absolute top-0 left-1/2 w-0.5 h-8 bg-gray-300 -translate-x-1/2 -translate-y-8"></div>
+          )}
+          
+          <div 
+            className="relative p-4 rounded-lg border-2 shadow-sm bg-white min-w-48"
+            style={{ borderColor: department.color }}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div 
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: department.color }}
+              />
+              <span className="text-xs text-gray-500">Level {department.level}</span>
+            </div>
+            
+            <div className="font-bold text-gray-800 text-center mb-1">{department.name}</div>
+            
+            {showPersonnel && deptPersonnel.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-gray-200">
+                {deptPersonnel.map((person) => (
+                  <div key={person.id} className="text-sm text-center mb-1">
+                    <div className="font-medium text-gray-700">{person.name}</div>
+                    <div className="text-xs text-gray-500">{person.title}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {children.length > 0 && (
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-white border border-gray-300 rounded-full p-1 hover:bg-gray-50"
+              >
+                {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+              </button>
+            )}
+          </div>
+        </div>
+        
+        {children.length > 0 && isExpanded && (
+          <div className="flex mt-8 relative">
+            {children.length > 1 && (
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gray-300 -translate-y-8"></div>
+            )}
+            <div className="flex gap-8">
+              {children.map((child) => (
+                <DepartmentNode key={child.id} department={child} level={level + 1} />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const rootDepartments = getRootDepartments();
+
+  if (rootDepartments.length === 0) {
+    return (
+      <div className="text-center py-12 text-gray-500">
+        <Building2 className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+        <p>No organizational structure to display.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex justify-center py-8">
+      <div className="flex gap-12">
+        {rootDepartments.map((dept) => (
+          <DepartmentNode key={dept.id} department={dept} />
+        ))}
+      </div>
+    </div>
+  );
+};
