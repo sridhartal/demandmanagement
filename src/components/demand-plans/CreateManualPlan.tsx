@@ -761,12 +761,15 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
             </div>
             <div className="relative">
               <div className="w-full h-2 bg-gray-200 rounded-full">
-                <div className="h-2 bg-green-500 rounded-full" style={{ width: '30%' }}></div>
+                <div 
                   className={`h-2 rounded-full transition-all duration-300 ${
                     complexity.color === 'green' ? 'bg-green-500' :
                     complexity.color === 'amber' ? 'bg-amber-500' :
                     'bg-red-500'
                   }`}
+                  style={{ width: `${complexity.percentage}%` }}
+                ></div>
+              </div>
               <div 
                 className="absolute -top-8 transform -translate-x-1/2 transition-all duration-300"
                 style={{ left: `${complexity.percentage}%` }}
