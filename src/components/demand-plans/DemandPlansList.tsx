@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Search, Filter, MoreVertical, Eye, Edit, Trash2, Users, MapPin, DollarSign, Calendar, CheckCircle, Clock, XCircle, AlertCircle } from 'lucide-react';
+import { Plus, Search, Filter, MoreVertical, Eye, CreditCard as Edit, Trash2, Users, MapPin, DollarSign, Calendar, CheckCircle, Clock, XCircle, AlertCircle } from 'lucide-react';
 import { DemandPlan } from '../../types';
 
 interface DemandPlansListProps {
