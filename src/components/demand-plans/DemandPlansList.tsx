@@ -995,9 +995,6 @@ export function OrgChartBuilder() {
                 Add Department
               </h3>
               <div className="grid grid-cols-4 gap-3">
-                Add Department
-              </h3>
-              <div className="grid grid-cols-4 gap-3">
                 <AccessibleInput
                   label="Department Name"
                   value={newDepartment.name}
@@ -1006,10 +1003,43 @@ export function OrgChartBuilder() {
                   placeholder="e.g., Engineering"
                   required
                   className="text-sm py-2"
-                />
                   autoComplete="organization"
+                />
+
+                <AccessibleSelect
+                  label="Level"
+                  value={newDepartment.level}
+                  onChange={(value) => setNewDepartment({...newDepartment, level: parseInt(value)})}
+                  options={Array.from({length: orgLevels}, (_, i) => ({
+                    value: i + 1,
                     label: `Level ${i + 1}`
                   }))}
+                  required
+                  className="text-sm"
+                />
+
+                <div className="space-y-1">
+                  <label className="block text-xs font-medium text-gray-700">Color</label>
+                  <input
+                    type="color"
+                    value={newDepartment.color}
+                    onChange={(e) => setNewDepartment({...newDepartment, color: e.target.value})}
+                    className="w-full h-8 border border-gray-300 rounded-lg cursor-pointer"
+                  />
+                </div>
+                
+                <div className="flex items-end">
+                  <button
+                    onClick={addDepartment}
+                    disabled={!newDepartment.name.trim()}
+                    className="w-full bg-blue-600 text-white px-3 py-2 text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Add Department
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {/* Add Personnel Form */}
             {departments.length > 0 && (
               <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -1018,7 +1048,7 @@ export function OrgChartBuilder() {
                   Add Personnel
                 </h3>
                 <div className="grid grid-cols-5 gap-3">
-                  <ValidatedInput
+                  <AccessibleInput
                     label="Full Name"
                     value={newPerson.name}
                     onChange={(value) => setNewPerson({...newPerson, name: value})}
@@ -1027,8 +1057,8 @@ export function OrgChartBuilder() {
                     required
                     className="text-sm py-2"
                   />
-                  />
-                  <ValidatedInput
+                  
+                  <AccessibleInput
                     label="Job Title"
                     value={newPerson.title}
                     onChange={(value) => setNewPerson({...newPerson, title: value})}
@@ -1037,8 +1067,8 @@ export function OrgChartBuilder() {
                     required
                     className="text-sm py-2"
                   />
-                </div>
-                  <ValidatedInput
+
+                  <AccessibleInput
                     label="Email"
                     value={newPerson.email}
                     onChange={(value) => setNewPerson({...newPerson, email: value})}
@@ -1076,26 +1106,35 @@ export function OrgChartBuilder() {
                 </div>
               </div>
             )}
-                <div className="flex items-end">
+
             {/* Combined Lists */}
             {(departments.length > 0 || personnel.length > 0) && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Departments List */}
                 {departments.length > 0 && (
-                  <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <section className="bg-white border border-gray-200 rounded-lg p-4">
                     <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center justify-between">
                       <span className="flex items-center">
-                        <Building2 className="w-4 h-4 mr-2 text-blue-600" />
+                        <Building2 className="w-4 h-4 mr-2 text-blue-600" aria-hidden="true" />
                         Departments ({departments.length})
                       </span>
                     </h3>
-                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                    <div 
+                      className="space-y-2 max-h-64 overflow-y-auto"
+                      role="list"
+                      aria-label="Departments list"
+                    >
                       {departments.map((dept) => (
-                        <div key={dept.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div 
+                          key={dept.id} 
+                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                          role="listitem"
+                        >
                           <div className="flex items-center space-x-3 flex-1 min-w-0">
                             <div 
                               className="w-3 h-3 rounded-full flex-shrink-0"
                               style={{ backgroundColor: dept.color }}
+                              aria-label={`Department color: ${dept.color}`}
                             />
                             <div className="min-w-0 flex-1">
                               <div className="font-medium text-gray-900 text-sm truncate">{dept.name}</div>
@@ -1103,74 +1142,6 @@ export function OrgChartBuilder() {
                             </div>
                           </div>
                           <div className="flex items-center space-x-1 flex-shrink-0">
-                            <button
-                              onClick={() => setEditingDepartment(dept)}
-                              className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                            >
-                              <Edit2 className="w-3 h-3" />
-                            </button>
-                            <button
-                              onClick={() => deleteDepartment(dept.id)}
-                              className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
-                          </div>
-                  <button
-                      ))}
-            {departments.length > 0 && (
-                  </div>
-                )}
-                </h3>
-                {/* Personnel List */}
-                {personnel.length > 0 && (
-                  <div className="bg-white border border-gray-200 rounded-lg p-4">
-                    <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center justify-between">
-                      <span className="flex items-center">
-                        <Users className="w-4 h-4 mr-2 text-green-600" />
-                        Personnel ({personnel.length})
-                      </span>
-                    </h3>
-                    <div className="space-y-2 max-h-64 overflow-y-auto">
-                      {personnel.map((person) => {
-                        const dept = departments.find(d => d.id === person.departmentId);
-                        return (
-                          <div key={person.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div className="flex items-center space-x-3 flex-1 min-w-0">
-                              <div 
-                                className="w-3 h-3 rounded-full flex-shrink-0"
-                                style={{ backgroundColor: dept?.color || '#gray' }}
-                              />
-                              <div className="min-w-0 flex-1">
-                                <div className="font-medium text-gray-900 text-sm truncate">{person.name}</div>
-                                <div className="text-xs text-gray-500 truncate">{person.title} • {dept?.name}</div>
-                                {person.email && (
-                                  <div className="text-xs text-gray-400 truncate">{person.email}</div>
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-1 flex-shrink-0">
-                              <button
-                                onClick={() => setEditingPerson(person)}
-                                className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                              >
-                                <Edit2 className="w-3 h-3" />
-                              </button>
-                              <button
-                                onClick={() => deletePerson(person.id)}
-                                className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    className="text-sm"
-                )}
-                      Add Person
-                    </button>
                             <button
                               onClick={() => setEditingDepartment(dept)}
                               aria-label={`Edit ${dept.name} department`}
@@ -1398,13 +1369,13 @@ export function OrgChartBuilder() {
                     transition: isReducedMotion ? 'none' : 'transform 0.2s ease'
                   }}
                   role="img"
-                <div className="space-y-1">
-                  <label className="block text-xs font-medium text-gray-700">Color</label>
+                  aria-label="Organization chart visualization"
+                >
                   <AccessibleOrgChart 
                     departments={departments}
                     personnel={personnel}
                     hierarchy={hierarchy}
-                    className="w-full h-8 border border-gray-300 rounded-lg cursor-pointer"
+                    showPersonnel={showPersonnel}
                   />
                 </div>
               ) : (
@@ -1702,15 +1673,12 @@ const AccessibleOrgChart = ({ departments, personnel, hierarchy, showPersonnel }
             
             {showPersonnel && deptPersonnel.length > 0 && (
               <div className="mt-3 pt-3 border-t border-gray-200" role="list" aria-label={`Personnel in ${department.name}`}>
-                <div className="flex items-end">
-                  <button
-                    onClick={addDepartment}
-                    disabled={!newDepartment.name.trim()}
-                    className="w-full bg-blue-600 text-white px-3 py-2 text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    Add Department
-                  </button>
-                </div>
+                {deptPersonnel.map((person) => (
+                  <div key={person.id} className="text-xs text-gray-600 mb-1" role="listitem">
+                    <div className="font-medium">{person.name}</div>
+                    <div className="text-gray-500">{person.title}</div>
+                  </div>
+                ))}
               </div>
             )}
             
