@@ -2,7 +2,11 @@ import React, { useState } from 'react';
 import { Plus, Search, Filter, Eye, CreditCard as Edit, Trash2, Users, Calendar, DollarSign, MapPin, Clock, CheckCircle, XCircle, AlertCircle, Upload } from 'lucide-react';
 import { DemandPlan } from '../../types';
 
-export function DemandPlansList() {
+interface DemandPlansListProps {
+  onNavigate: (tab: string) => void;
+}
+
+export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('created_at');
@@ -109,9 +113,12 @@ export function DemandPlansList() {
             <Upload className="w-4 h-4" />
             <span>Bulk Upload</span>
           </button>
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
+          <button 
+            onClick={() => onNavigate('create-manual')}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+          >
             <Plus className="w-4 h-4" />
-            <span>Add New Requisition</span>
+            <span>New Requisition</span>
           </button>
         </div>
       </div>

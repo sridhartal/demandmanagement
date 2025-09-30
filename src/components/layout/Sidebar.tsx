@@ -39,11 +39,11 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
   const menuItems: MenuItem[] = [
     {
       id: 'demand-plans',
-      label: 'Positions',
+      label: 'Requisitions',
       icon: FileText,
       children: [
-        { id: 'demand-plans', label: 'All Positions', icon: List },
-        { id: 'create-manual', label: 'Create Position', icon: Plus },
+        { id: 'demand-plans', label: 'All Requisitions', icon: List },
+        { id: 'create-manual', label: 'Create Requisition', icon: Plus },
         { id: 'bulk-upload', label: 'Bulk Import', icon: Upload },
         { id: 'ai-create', label: 'AI Assistant', icon: Bot }
       ]
