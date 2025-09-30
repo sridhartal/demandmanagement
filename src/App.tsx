@@ -1620,7 +1620,7 @@ export function OrgChartBuilder() {
   );
 }
 
-// Accessible Organization Chart Visualization
+export default App;
 const AccessibleOrgChart = ({ departments, personnel, hierarchy, showPersonnel }) => {
   const getRootDepartments = () => {
     const childIds = hierarchy.map(h => h.childId);
