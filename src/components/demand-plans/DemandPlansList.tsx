@@ -150,87 +150,92 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
   const allSelectableSelected = selectablePlans.length > 0 && selectablePlans.every(plan => selectedPlans.includes(plan.id));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 max-w-none">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Requisitions</h1>
-          <p className="text-gray-600">Manage and track your positions</p>
-        </div>
-        <div className="flex items-center space-x-3">
-          <button className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center space-x-2">
-            <Upload className="w-4 h-4" />
-            <span>Bulk Upload</span>
-          </button>
-          <button 
-            onClick={() => onNavigate('create-manual')}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>New Requisition</span>
-          </button>
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+        <div className="flex items-center justify-between p-6">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Requisitions Dashboard</h1>
+            <p className="text-sm text-gray-600">Manage and track your position requisitions</p>
+          </div>
+          <div className="flex items-center space-x-3">
+            <button 
+              onClick={() => onNavigate('bulk-upload')}
+              className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors flex items-center space-x-2 text-sm"
+            >
+              <Upload className="w-4 h-4" />
+              <span>Bulk Upload</span>
+            </button>
+            <button 
+              onClick={() => onNavigate('create-manual')}
+              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2 text-sm font-medium"
+            >
+              <Plus className="w-4 h-4" />
+              <span>New Requisition</span>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm font-medium">Total Requisitions</p>
-              <p className="text-2xl font-bold text-gray-900">{mockDemandPlans.length}</p>
+              <p className="text-gray-600 text-xs font-medium">Total Requisitions</p>
+              <p className="text-xl font-bold text-gray-900">{mockDemandPlans.length}</p>
             </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Users className="w-6 h-6 text-blue-600" />
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Users className="w-5 h-5 text-blue-600" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm font-medium">Total Positions</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-gray-600 text-xs font-medium">Total Positions</p>
+              <p className="text-xl font-bold text-gray-900">
                 {mockDemandPlans.reduce((sum, plan) => sum + plan.total_positions, 0)}
               </p>
             </div>
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <Users className="w-6 h-6 text-green-600" />
+            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+              <Users className="w-5 h-5 text-green-600" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm font-medium">Pending Approval</p>
-              <p className="text-2xl font-bold text-amber-600">
+              <p className="text-gray-600 text-xs font-medium">Pending Approval</p>
+              <p className="text-xl font-bold text-amber-600">
                 {mockDemandPlans.filter(p => p.status === 'pending_approval').length}
               </p>
             </div>
-            <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
-              <Clock className="w-6 h-6 text-amber-600" />
+            <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+              <Clock className="w-5 h-5 text-amber-600" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm font-medium">Approved</p>
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-gray-600 text-xs font-medium">Approved</p>
+              <p className="text-xl font-bold text-green-600">
                 {mockDemandPlans.filter(p => p.status === 'approved').length}
               </p>
             </div>
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <CheckCircle className="w-6 h-6 text-green-600" />
+            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+              <CheckCircle className="w-5 h-5 text-green-600" />
             </div>
           </div>
         </div>
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
@@ -240,16 +245,18 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
                 placeholder="Search plans..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                aria-label="Search requisitions"
               />
             </div>
           </div>
           
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+              aria-label="Filter by status"
             >
               <option value="all">All Status</option>
               <option value="draft">Draft</option>
@@ -261,7 +268,8 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+              aria-label="Sort by"
             >
               <option value="created_at">Created Date</option>
               <option value="title">Title</option>
@@ -274,7 +282,7 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
 
       {/* Bulk Actions Bar */}
       {selectedPlans.length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <span className="text-sm font-medium text-blue-900">
@@ -289,7 +297,7 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
             </div>
             <button
               onClick={handleSendForApproval}
-              className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
             >
               <Send className="w-4 h-4" />
               <span>Send for Approval</span>
@@ -299,7 +307,7 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
       )}
 
       {/* Plans List */}
-      <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-200">
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
         {filteredPlans.length === 0 ? (
           <div className="text-center py-12">
             <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
@@ -310,7 +318,7 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
                 : 'Get started by creating your first requisition'
               }
             </p>
-            <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+            <button className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors">
               Create First Requisition
             </button>
           </div>
@@ -319,7 +327,7 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
                   <input
                     type="checkbox"
                     checked={allSelectableSelected}
@@ -328,33 +336,33 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
                     disabled={selectablePlans.length === 0}
                   />
                 </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Requisition Name
                 </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Created By
                 </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Position Count
                 </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Budget Range
                 </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Created Date
                 </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-gray-100">
               {filteredPlans.map((plan) => (
-                <tr key={plan.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                <tr key={plan.id} className="hover:bg-gray-50 transition-colors" role="row">
+                  <td className="px-4 py-3 whitespace-nowrap">
                     <input
                       type="checkbox"
                       checked={selectedPlans.includes(plan.id)}
@@ -363,28 +371,29 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
                       disabled={plan.status !== 'draft'}
                     />
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap w-1/4">
+                  <td className="px-4 py-3 w-1/4">
                     <div className="flex items-center">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{plan.title}</div>
+                        <div className="text-sm font-medium text-gray-900 line-clamp-2">{plan.title}</div>
+                        <div className="text-xs text-gray-500 mt-1 line-clamp-1">{plan.description}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{plan.created_by.split('@')[0]}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{plan.total_positions}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-nowrap">
                     <div className="text-sm text-gray-900">$80K - $120K</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
                       {new Date(plan.created_at).toLocaleDateString()}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-nowrap">
                     <span className={getStatusBadge(plan.status)}>
                       {plan.status === 'pending_approval' ? 'Pending' :
                        plan.status === 'rejected' ? 'Changes Requested' :
@@ -392,15 +401,24 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
                        plan.status.charAt(0).toUpperCase() + plan.status.slice(1)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center space-x-2">
-                      <button className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                      <button 
+                        className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                        aria-label={`View ${plan.title}`}
+                      >
                         <Eye className="w-4 h-4" />
                       </button>
-                      <button className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors">
+                      <button 
+                        className="p-1.5 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-md transition-colors"
+                        aria-label={`Edit ${plan.title}`}
+                      >
                         <Edit className="w-4 h-4" />
                       </button>
-                      <button className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                      <button 
+                        className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                        aria-label={`Delete ${plan.title}`}
+                      >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
