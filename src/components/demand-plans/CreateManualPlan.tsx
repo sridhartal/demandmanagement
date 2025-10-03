@@ -170,4 +170,4 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
         percentage: 30,
         color: 'green',
         badge: 'L',
-        talentPool: 'Large
+        talentPool: 'Large'
