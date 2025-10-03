@@ -1,44 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { signOut } from '../../lib/supabase';
-import { Building2, Bell, Search, Settings, User, ChevronDown, LogOut, Maximize, Minimize } from 'lucide-react';
+import { Building2, Bell, Search, Settings, User, ChevronDown, LogOut } from 'lucide-react';
 
 interface HeaderProps {
   userEmail?: string;
 }
 
 export function Header({ userEmail }: HeaderProps) {
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
-
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
-    };
-  }, []);
-
   const handleSignOut = async () => {
     await signOut();
-  };
-
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(err => {
-        console.log(`Error attempting to enable fullscreen: ${err.message}`);
-      });
-    } else {
-      document.exitFullscreen();
-    }
   };
 
   return (
@@ -71,15 +41,6 @@ export function Header({ userEmail }: HeaderProps) {
 
         {/* Right Side Actions */}
         <div className="flex items-center space-x-4">
-          {/* Fullscreen Toggle */}
-          <button 
-            onClick={toggleFullscreen}
-            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all focus-ring"
-            title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
-          >
-            {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
-          </button>
-
           {/* Notifications */}
           <button className="relative p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all focus-ring">
             <Bell className="w-5 h-5" />

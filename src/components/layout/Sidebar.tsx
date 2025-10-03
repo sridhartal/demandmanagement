@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   BarChart3, 
   FileText, 
@@ -35,26 +35,6 @@ interface MenuItem {
 export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
   const [expandedItems, setExpandedItems] = useState<string[]>(['demand-plans']);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
-  // Listen for fullscreen changes
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
-
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
-    };
-  }, []);
 
   const menuItems: MenuItem[] = [
     {
@@ -199,9 +179,8 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
 
       {/* Sidebar */}
       <aside className={`
-        fixed lg:static inset-y-0 left-0 z-40 w-72 bg-white border-r border-slate-200
+        fixed lg:static inset-y-0 left-0 z-40 w-72 bg-white border-r border-slate-200 
         transform transition-transform duration-300 ease-in-out
-        ${isFullscreen ? '-translate-x-full' : ''}
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         <div className="flex flex-col h-full">

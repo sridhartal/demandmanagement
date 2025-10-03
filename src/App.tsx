@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useOnboarding } from './hooks/useOnboarding';
 import { Header } from './components/layout/Header';
 import { Sidebar } from './components/layout/Sidebar';
 import { Breadcrumbs } from './components/layout/Breadcrumbs';
 import { OnboardingTooltip } from './components/onboarding/OnboardingTooltip';
+import { Dashboard } from './components/dashboard/Dashboard';
 import { CreateManualPlan } from './components/demand-plans/CreateManualPlan';
 import { BulkUpload } from './components/demand-plans/BulkUpload';
 import { AICreate } from './components/demand-plans/AICreate';
@@ -16,26 +17,6 @@ import { Settings } from './components/settings/Settings';
 function App() {
   const { steps, currentStep, isOnboardingActive, completeStep, skipOnboarding } = useOnboarding();
   const [activeTab, setActiveTab] = useState('demand-plans');
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
-  // Listen for fullscreen changes
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
-
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
-    };
-  }, []);
 
   // Mock user data
   const mockUser = {
@@ -120,9 +101,7 @@ function App() {
       <div className="flex min-h-screen">
         <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
         
-        <main className={`flex-1 p-4 sm:p-6 lg:p-8 max-w-full overflow-x-hidden transition-all duration-300 ${
-          isFullscreen ? 'lg:ml-0' : 'lg:ml-72'
-        }`}>
+        <main className="flex-1 p-8 lg:ml-0 max-w-full overflow-x-hidden">
           <Breadcrumbs items={getBreadcrumbs()} />
           {renderMainContent()}
         </main>
