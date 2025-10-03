@@ -171,3 +171,7 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
         color: 'green',
         badge: 'L',
         talentPool: 'Large'
+      }
+    }
+  }
+}
