@@ -35,7 +35,7 @@ function App() {
       document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
       document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
     };
-  }, []);</action>
+  }, []);
 
   // Mock user data
   const mockUser = {
