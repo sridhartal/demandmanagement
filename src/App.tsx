@@ -108,8 +108,8 @@ function App() {
         
         <main 
           id="main-content"
-          className="flex-1 p-6 lg:ml-0 max-w-full overflow-x-hidden"
-          style={{ marginLeft: '240px' }}
+          className="flex-1 p-6 max-w-full overflow-x-hidden"
+          style={{ marginLeft: '200px' }}
         >
           <Breadcrumbs items={getBreadcrumbs()} />
           {renderMainContent()}

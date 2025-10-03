@@ -182,7 +182,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
         fixed lg:static inset-y-0 left-0 z-40 w-72 bg-white border-r border-slate-200 
         transform transition-transform duration-300 ease-in-out
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-      `} style={{ width: '240px' }}>
+      `} style={{ width: '200px' }}>
         <div className="flex flex-col h-full">
           {/* Sidebar Header */}
           <div className="p-4 border-b border-slate-200">
