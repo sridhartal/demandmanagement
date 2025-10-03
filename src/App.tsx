@@ -96,21 +96,12 @@ function App() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Skip to main content link for screen readers */}
-      <a href="#main-content" className="skip-link">
-        Skip to main content
-      </a>
-      
       <Header userEmail={mockUser.email} />
       
       <div className="flex min-h-screen">
         <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
         
-        <main 
-          id="main-content"
-          className="flex-1 p-6 max-w-full overflow-x-hidden"
-          style={{ marginLeft: '200px' }}
-        >
+        <main className="flex-1 p-8 lg:ml-0 max-w-full overflow-x-hidden">
           <Breadcrumbs items={getBreadcrumbs()} />
           {renderMainContent()}
         </main>

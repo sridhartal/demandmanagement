@@ -164,51 +164,6 @@
   .focus-ring {
     @apply focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2;
   }
-  
-  /* Line clamp utilities */
-  .line-clamp-1 {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 1;
-  }
-  
-  .line-clamp-2 {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-  }
-  
-  /* Fade in animation */
-  .animate-fade-in {
-    animation: fadeIn 0.3s ease-in-out;
-  }
-  
-  /* Skip link for screen readers */
-  .skip-link {
-    @apply absolute -top-10 left-6 bg-blue-600 text-white px-4 py-2 rounded-md z-50 focus:top-6 transition-all;
-  }
-  
-  /* High contrast mode support */
-  @media (prefers-contrast: high) {
-    .card {
-      @apply border-2 border-gray-900;
-    }
-    
-    .btn-primary {
-      @apply border-2 border-blue-800;
-    }
-  }
-  
-  /* Reduced motion support */
-  @media (prefers-reduced-motion: reduce) {
-    * {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-    }
-  }
 }
 
 /* Custom scrollbar */

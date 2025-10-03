@@ -107,8 +107,8 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
       <div key={item.id} className="mb-1">
         <button
           onClick={() => handleItemClick(item.id, hasChildren)}
-          className={`w-full flex items-center justify-between px-2 py-2 rounded-md text-left transition-all duration-200 group ${
-            level === 0 ? '' : 'ml-4'
+          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-all duration-200 group ${
+            level === 0 ? '' : 'ml-6'
           } ${
             isActive && !hasChildren
               ? 'bg-indigo-50 text-indigo-700 border-r-2 border-indigo-600 font-medium'
@@ -118,12 +118,12 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
           }`}
         >
           <div className="flex items-center space-x-3">
-            <IconComponent className={`w-4 h-4 ${
+            <IconComponent className={`w-5 h-5 ${
               level === 0 ? '' : 'w-4 h-4'
             } ${
               isActive && !hasChildren ? 'text-indigo-600' : 'text-slate-500 group-hover:text-slate-700'
             }`} />
-            <span className={`text-xs ${level === 0 ? 'font-medium' : ''}`}>
+            <span className={`text-sm ${level === 0 ? 'font-medium' : ''}`}>
               {item.label}
             </span>
             {item.badge && (
@@ -182,27 +182,27 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
         fixed lg:static inset-y-0 left-0 z-40 w-72 bg-white border-r border-slate-200 
         transform transition-transform duration-300 ease-in-out
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-      `} style={{ width: '200px' }}>
+      `}>
         <div className="flex flex-col h-full">
           {/* Sidebar Header */}
-          <div className="p-4 border-b border-slate-200">
+          <div className="p-6 border-b border-slate-200">
             <div className="flex items-center space-x-3">
-              <div className="w-6 h-6 bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-md flex items-center justify-center shadow-sm">
-                <Building2 className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-lg flex items-center justify-center shadow-sm">
+                <Building2 className="w-5 h-5 text-white" />
               </div>
-              <span className="text-sm font-semibold text-slate-900">TalentFlow</span>
             </div>
           </div>
 
           {/* Navigation Menu */}
-          <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
             {menuItems.map(item => renderMenuItem(item))}
           </nav>
 
           {/* Sidebar Footer */}
-          <div className="p-3 border-t border-slate-200 bg-slate-50">
+          <div className="p-4 border-t border-slate-200 bg-slate-50">
             <div className="text-center">
-              <button className="text-xs text-indigo-600 hover:text-indigo-700 font-medium transition-colors w-full">
+              <p className="text-xs text-slate-500 mb-2">Need assistance?</p>
+              <button className="text-xs text-indigo-600 hover:text-indigo-700 font-medium transition-colors">
                 Contact Support
               </button>
             </div>
