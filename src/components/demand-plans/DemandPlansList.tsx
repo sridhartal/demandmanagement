@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Search, Filter, Eye, CreditCard as Edit, Trash2, Users, Calendar, DollarSign, MapPin, Clock, CheckCircle, XCircle, AlertCircle, Upload } from 'lucide-react';
+import { Plus, Search, Filter, Eye, CreditCard as Edit, Trash2, Users, Calendar, DollarSign, MapPin, Clock, CheckCircle, XCircle, AlertCircle, Upload, Send, X } from 'lucide-react';
 import { DemandPlan } from '../../types';
 
 interface DemandPlansListProps {
@@ -10,6 +10,12 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('created_at');
+  const [selectedPlans, setSelectedPlans] = useState<string[]>([]);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [approvalData, setApprovalData] = useState({
+    approver: '',
+    message: ''
+  });
 
   // Mock data for demonstration
   const mockDemandPlans: DemandPlan[] = [
@@ -67,6 +73,14 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
     }
   ];
 
+  // Mock approvers data
+  const mockApprovers = [
+    { id: '1', name: 'Sarah Johnson', role: 'Department Head', email: 'sarah.johnson@company.com' },
+    { id: '2', name: 'Michael Chen', role: 'Regional Manager', email: 'michael.chen@company.com' },
+    { id: '3', name: 'Lisa Wong', role: 'VP Engineering', email: 'lisa.wong@company.com' },
+    { id: '4', name: 'David Kim', role: 'Director HR', email: 'david.kim@company.com' }
+  ];
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'approved':
@@ -99,6 +113,41 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
     const matchesStatus = statusFilter === 'all' || plan.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedPlans(filteredPlans.filter(plan => plan.status === 'draft').map(plan => plan.id));
+    } else {
+      setSelectedPlans([]);
+    }
+  };
+
+  const handleSelectPlan = (planId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedPlans(prev => [...prev, planId]);
+    } else {
+      setSelectedPlans(prev => prev.filter(id => id !== planId));
+    }
+  };
+
+  const handleSendForApproval = () => {
+    setShowApprovalModal(true);
+  };
+
+  const handleSubmitApproval = () => {
+    console.log('Sending for approval:', {
+      plans: selectedPlans,
+      approver: approvalData.approver,
+      message: approvalData.message
+    });
+    alert(`${selectedPlans.length} requisition(s) sent for approval!`);
+    setShowApprovalModal(false);
+    setSelectedPlans([]);
+    setApprovalData({ approver: '', message: '' });
+  };
+
+  const selectablePlans = filteredPlans.filter(plan => plan.status === 'draft');
+  const allSelectableSelected = selectablePlans.length > 0 && selectablePlans.every(plan => selectedPlans.includes(plan.id));
 
   return (
     <div className="space-y-6">
@@ -223,6 +272,32 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
         </div>
       </div>
 
+      {/* Bulk Actions Bar */}
+      {selectedPlans.length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <span className="text-sm font-medium text-blue-900">
+                {selectedPlans.length} requisition{selectedPlans.length > 1 ? 's' : ''} selected
+              </span>
+              <button
+                onClick={() => setSelectedPlans([])}
+                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+              >
+                Clear selection
+              </button>
+            </div>
+            <button
+              onClick={handleSendForApproval}
+              className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Send className="w-4 h-4" />
+              <span>Send for Approval</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Plans List */}
       <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-200">
         {filteredPlans.length === 0 ? (
@@ -244,6 +319,15 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+                  <input
+                    type="checkbox"
+                    checked={allSelectableSelected}
+                    onChange={(e) => handleSelectAll(e.target.checked)}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    disabled={selectablePlans.length === 0}
+                  />
+                </th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Requisition Name
                 </th>
@@ -270,6 +354,15 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredPlans.map((plan) => (
                 <tr key={plan.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <input
+                      type="checkbox"
+                      checked={selectedPlans.includes(plan.id)}
+                      onChange={(e) => handleSelectPlan(plan.id, e.target.checked)}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      disabled={plan.status !== 'draft'}
+                    />
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap w-1/4">
                     <div className="flex items-center">
                       <div>
@@ -319,6 +412,88 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
         </div>
         )}
       </div>
+
+      {/* Approval Modal */}
+      {showApprovalModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-900">Send for Approval</h3>
+              <button
+                onClick={() => setShowApprovalModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-gray-600 mb-4">
+                  Sending {selectedPlans.length} requisition{selectedPlans.length > 1 ? 's' : ''} for approval:
+                </p>
+                <div className="bg-gray-50 rounded-lg p-3 max-h-32 overflow-y-auto">
+                  {filteredPlans
+                    .filter(plan => selectedPlans.includes(plan.id))
+                    .map(plan => (
+                      <div key={plan.id} className="text-sm text-gray-700 py-1">
+                        • {plan.title}
+                      </div>
+                    ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Approver
+                </label>
+                <select
+                  value={approvalData.approver}
+                  onChange={(e) => setApprovalData(prev => ({ ...prev, approver: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                >
+                  <option value="">Choose an approver...</option>
+                  {mockApprovers.map(approver => (
+                    <option key={approver.id} value={approver.id}>
+                      {approver.name} - {approver.role}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Message (Optional)
+                </label>
+                <textarea
+                  value={approvalData.message}
+                  onChange={(e) => setApprovalData(prev => ({ ...prev, message: e.target.value }))}
+                  placeholder="Add a message for the approver..."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowApprovalModal(false)}
+                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmitApproval}
+                disabled={!approvalData.approver}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Send for Approval
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
