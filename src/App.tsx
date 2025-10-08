@@ -17,6 +17,7 @@ import { Settings } from './components/settings/Settings';
 function App() {
   const { steps, currentStep, isOnboardingActive, completeStep, skipOnboarding } = useOnboarding();
   const [activeTab, setActiveTab] = useState('demand-plans');
+  const [selectedReviewId, setSelectedReviewId] = useState<string | null>(null);
 
   // Mock user data
   const mockUser = {
@@ -49,7 +50,8 @@ function App() {
       'create-manual': { label: 'Create Manually', parent: 'demand-plans' },
       'bulk-upload': { label: 'Bulk Upload', parent: 'demand-plans' },
       'ai-create': { label: 'AI Assistant', parent: 'demand-plans' },
-      'approvals': { label: 'Approvals' },
+      'approvals': { label: 'Reviews' },
+      'review-detail': { label: 'Review Details', parent: 'approvals' },
       'analytics': { label: 'Analytics & Reports' },
       'org-chart': { label: 'Org Chart Builder' },
       'settings': { label: 'Settings' }
@@ -63,12 +65,22 @@ function App() {
       const parent = breadcrumbMap[current.parent];
       items.push({
         label: parent.label,
-        onClick: () => setActiveTab(current.parent!)
+        onClick: () => {
+          setActiveTab(current.parent!);
+          if (current.parent === 'approvals') {
+            setSelectedReviewId(null);
+          }
+        }
       });
     }
     items.push({ label: current.label });
-    
+
     return items;
+  };
+
+  const handleViewReview = (reviewId: string) => {
+    setSelectedReviewId(reviewId);
+    setActiveTab('review-detail');
   };
 
   const renderMainContent = () => {
@@ -82,7 +94,9 @@ function App() {
       case 'demand-plans':
         return <DemandPlansList onNavigate={handleTabChange} />;
       case 'approvals':
-        return <ApprovalsList />;
+        return <ApprovalsList onViewReview={handleViewReview} />;
+      case 'review-detail':
+        return <ApprovalsList onViewReview={handleViewReview} reviewId={selectedReviewId} />;
       case 'analytics':
         return <Analytics />;
       case 'org-chart':
