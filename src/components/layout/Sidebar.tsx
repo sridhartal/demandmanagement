@@ -50,7 +50,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
     },
     {
       id: 'approvals',
-      label: 'Approvals',
+      label: 'Reviews',
       icon: CheckCircle,
       badge: 4,
       badgeColor: 'bg-amber-100 text-amber-700'
