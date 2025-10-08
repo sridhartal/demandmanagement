@@ -209,110 +209,118 @@ export function ApprovalsList({ onViewReview, reviewId }: ApprovalsListProps) {
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           {/* Header */}
           <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
-            <h2 className="text-lg font-semibold text-gray-900">Requisition Details</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Review Details</h2>
           </div>
 
-          <div className="p-6 space-y-6">
-            {/* Position Summary */}
-            <div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">{selectedReview.position_title}</h3>
-
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div>
-                  <p className="text-sm text-gray-500 mb-1">Department</p>
-                  <div className="flex items-center text-sm text-gray-900">
-                    <Briefcase className="w-4 h-4 mr-2 text-gray-500" />
-                    {selectedReview.department}
-                  </div>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500 mb-1">Location</p>
-                  <div className="flex items-center text-sm text-gray-900">
-                    <MapPin className="w-4 h-4 mr-2 text-gray-500" />
-                    {selectedReview.location}
-                  </div>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500 mb-1">Total Positions</p>
-                  <div className="flex items-center text-sm text-gray-900">
-                    <Users className="w-4 h-4 mr-2 text-gray-500" />
-                    {selectedReview.total_positions}
-                  </div>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500 mb-1">Experience Range</p>
-                  <p className="text-sm text-gray-900">{selectedReview.experience_range}</p>
-                </div>
+          <div className="flex">
+            {/* Left Side - Requisition Details (70%) */}
+            <div className="w-[70%] p-6 border-r border-gray-200 space-y-6">
+              {/* Requisition Details Header */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Requisition Details</h3>
               </div>
 
-              {/* Skills */}
-              <div className="mb-6">
-                <p className="text-sm font-medium text-gray-700 mb-2">Required Skills</p>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {selectedReview.mandatory_skills?.map((skill, idx) => (
-                    <span
-                      key={idx}
-                      className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
+              {/* Position Summary */}
+              <div>
+                <h4 className="text-xl font-bold text-gray-900 mb-4">{selectedReview.position_title}</h4>
 
-                {selectedReview.optional_skills && selectedReview.optional_skills.length > 0 && (
-                  <>
-                    <p className="text-sm font-medium text-gray-700 mb-2">Nice-to-Have Skills</p>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedReview.optional_skills.map((skill, idx) => (
-                        <span
-                          key={idx}
-                          className="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* Job Description */}
-              <div className="mb-6">
-                <p className="text-sm font-medium text-gray-700 mb-2">Job Description</p>
-                <p className="text-sm text-gray-600 leading-relaxed">{selectedReview.job_description}</p>
-              </div>
-
-              {/* Comments */}
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                <div className="flex items-start space-x-2">
-                  <MessageSquare className="w-4 h-4 text-amber-600 mt-0.5" />
+                <div className="grid grid-cols-2 gap-4 mb-6">
                   <div>
-                    <p className="text-sm font-medium text-gray-900">Submitter Comments</p>
-                    <p className="text-sm text-gray-700 mt-1">{selectedReview.comments}</p>
+                    <p className="text-sm text-gray-500 mb-1">Department</p>
+                    <div className="flex items-center text-sm text-gray-900">
+                      <Briefcase className="w-4 h-4 mr-2 text-gray-500" />
+                      {selectedReview.department}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Location</p>
+                    <div className="flex items-center text-sm text-gray-900">
+                      <MapPin className="w-4 h-4 mr-2 text-gray-500" />
+                      {selectedReview.location}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Total Positions</p>
+                    <div className="flex items-center text-sm text-gray-900">
+                      <Users className="w-4 h-4 mr-2 text-gray-500" />
+                      {selectedReview.total_positions}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Experience Range</p>
+                    <p className="text-sm text-gray-900">{selectedReview.experience_range}</p>
+                  </div>
+                </div>
+
+                {/* Skills */}
+                <div className="mb-6">
+                  <p className="text-sm font-medium text-gray-700 mb-2">Required Skills</p>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {selectedReview.mandatory_skills?.map((skill, idx) => (
+                      <span
+                        key={idx}
+                        className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+
+                  {selectedReview.optional_skills && selectedReview.optional_skills.length > 0 && (
+                    <>
+                      <p className="text-sm font-medium text-gray-700 mb-2">Nice-to-Have Skills</p>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedReview.optional_skills.map((skill, idx) => (
+                          <span
+                            key={idx}
+                            className="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Job Description */}
+                <div className="mb-6">
+                  <p className="text-sm font-medium text-gray-700 mb-2">Job Description</p>
+                  <p className="text-sm text-gray-600 leading-relaxed">{selectedReview.job_description}</p>
+                </div>
+
+                {/* Comments */}
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-2">
+                    <MessageSquare className="w-4 h-4 text-amber-600 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Submitter Comments</p>
+                      <p className="text-sm text-gray-700 mt-1">{selectedReview.comments}</p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Hiring Complexity Section */}
-            <div className="border-t border-gray-200 pt-6">
-              <div className="flex items-center space-x-2 mb-4">
-                <TrendingUp className="w-5 h-5 text-gray-700" />
-                <h3 className="text-lg font-semibold text-gray-900">Hiring Complexity Insights</h3>
-              </div>
+            {/* Right Side - Hiring Insights (30%) */}
+            <div className="w-[30%] p-6 bg-gray-50 space-y-6">
+              <div>
+                <div className="flex items-center space-x-2 mb-4">
+                  <TrendingUp className="w-5 h-5 text-gray-700" />
+                  <h3 className="text-lg font-semibold text-gray-900">Hiring Insights</h3>
+                </div>
 
-              {/* Complexity Ticker */}
-              <div className="mb-6">
-                <p className="text-sm font-medium text-gray-700 mb-3">Complexity Level</p>
-                <div className="flex items-center space-x-4">
-                  <div className="flex space-x-2 flex-1">
+                {/* Complexity Ticker */}
+                <div className="mb-6">
+                  <p className="text-sm font-medium text-gray-700 mb-3">Complexity Level</p>
+                  <div className="flex flex-col space-y-2">
                     {['Low', 'Medium', 'High'].map((level) => {
                       const isActive = selectedReview.complexity === level;
                       const colors = getComplexityColor(level);
                       return (
                         <div
                           key={level}
-                          className={`flex-1 px-4 py-3 rounded-lg border-2 text-center transition-all ${
+                          className={`px-3 py-2 rounded-lg border-2 text-center transition-all ${
                             isActive
                               ? `${colors.bg} ${colors.text} border-current`
                               : 'bg-white text-gray-400 border-gray-200'
@@ -327,40 +335,39 @@ export function ApprovalsList({ onViewReview, reviewId }: ApprovalsListProps) {
                     })}
                   </div>
                 </div>
-              </div>
 
-              {/* Talent Pool */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                <div className="flex items-start space-x-3">
-                  <Users className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900 mb-1">Talent Pool Availability</p>
-                    <p className="text-sm text-gray-700">{selectedReview.talent_pool}</p>
+                {/* Talent Pool */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                  <div className="flex items-start space-x-3">
+                    <Users className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900 mb-1">Talent Pool Availability</p>
+                      <p className="text-sm text-gray-700">{selectedReview.talent_pool}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Compensation Range */}
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                <div className="flex items-start space-x-3">
-                  <DollarSign className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900 mb-1">Compensation Range</p>
-                    <p className="text-sm text-gray-700">{selectedReview.compensation_range}</p>
+                {/* Compensation Range */}
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                  <div className="flex items-start space-x-3">
+                    <DollarSign className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900 mb-1">Compensation Range</p>
+                      <p className="text-sm text-gray-700">{selectedReview.compensation_range}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Information Source */}
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                <div className="flex items-start space-x-3">
-                  <Info className="w-5 h-5 text-gray-600 mt-0.5 flex-shrink-0" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900 mb-1">Information Source</p>
-                    <p className="text-sm text-gray-600">
-                      Market data aggregated from industry reports, salary surveys, and job board analytics.
-                      Last updated: {new Date().toLocaleDateString()}
-                    </p>
+                {/* Information Source */}
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-3">
+                    <Info className="w-5 h-5 text-gray-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900 mb-1">Information Source</p>
+                      <p className="text-xs text-gray-600">
+                        Market data aggregated from industry reports, salary surveys, and job board analytics.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -514,7 +521,8 @@ export function ApprovalsList({ onViewReview, reviewId }: ApprovalsListProps) {
               {mockReviews.map((review) => (
                 <tr
                   key={review.id}
-                  className="hover:bg-gray-50 transition-colors"
+                  className="hover:bg-gray-50 transition-colors cursor-pointer"
+                  onClick={() => handleViewReviewClick(review)}
                 >
                   <td className="px-4 py-4">
                     <input
