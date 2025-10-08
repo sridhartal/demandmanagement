@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Search, Filter, Eye, CreditCard as Edit, Trash2, Users, Calendar, DollarSign, MapPin, Clock, CheckCircle, XCircle, AlertCircle, Upload, Send, X } from 'lucide-react';
+import { Plus, Search, Filter, Eye, CreditCard as Edit, Trash2, Users, Calendar, DollarSign, MapPin, Clock, CheckCircle, XCircle, AlertCircle, Upload, Send, X, FileCheck, Inbox, ClipboardCheck, Rocket } from 'lucide-react';
 import { DemandPlan } from '../../types';
 
 interface DemandPlansListProps {
@@ -189,13 +189,13 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm font-medium">Total Positions</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {mockDemandPlans.reduce((sum, plan) => sum + plan.total_positions, 0)}
+              <p className="text-gray-600 text-sm font-medium">ANSR Review</p>
+              <p className="text-2xl font-bold text-purple-600">
+                {mockDemandPlans.filter(p => p.status === 'draft').length}
               </p>
             </div>
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <Users className="w-6 h-6 text-green-600" />
+            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+              <FileCheck className="w-6 h-6 text-purple-600" />
             </div>
           </div>
         </div>
@@ -203,13 +203,13 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm font-medium">Pending Approval</p>
-              <p className="text-2xl font-bold text-amber-600">
+              <p className="text-gray-600 text-sm font-medium">Intake</p>
+              <p className="text-2xl font-bold text-blue-600">
                 {mockDemandPlans.filter(p => p.status === 'pending_approval').length}
               </p>
             </div>
-            <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
-              <Clock className="w-6 h-6 text-amber-600" />
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Inbox className="w-6 h-6 text-blue-600" />
             </div>
           </div>
         </div>
@@ -217,14 +217,35 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm font-medium">Approved</p>
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-gray-600 text-sm font-medium">Final Review</p>
+              <p className="text-2xl font-bold text-amber-600">
                 {mockDemandPlans.filter(p => p.status === 'approved').length}
               </p>
             </div>
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <CheckCircle className="w-6 h-6 text-green-600" />
+            <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
+              <ClipboardCheck className="w-6 h-6 text-amber-600" />
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Go Live Card - Full Width */}
+      <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200 p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <Rocket className="w-6 h-6 text-green-600" />
+            </div>
+            <div>
+              <p className="text-gray-600 text-sm font-medium">Go Live</p>
+              <p className="text-2xl font-bold text-green-600">
+                {mockDemandPlans.filter(p => p.status === 'rejected').length}
+              </p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-sm text-gray-600">Requisitions ready for launch</p>
+            <p className="text-xs text-gray-500 mt-1">Final stage before activation</p>
           </div>
         </div>
       </div>
