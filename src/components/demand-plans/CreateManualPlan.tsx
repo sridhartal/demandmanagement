@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Save, ArrowLeft, ArrowRight, Upload, Wand2, CreditCard as Edit, ChevronDown, ChevronRight, AlertCircle, CheckCircle, Info, Users, Calendar, DollarSign } from 'lucide-react';
+import { Plus, Trash2, Save, ArrowLeft, ArrowRight, Upload, Wand2, CreditCard as Edit, ChevronDown, ChevronRight, AlertCircle, CheckCircle, Info, Users, Calendar, DollarSign, Send } from 'lucide-react';
 
 interface Requisition {
   id: string;
@@ -302,10 +302,14 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
     updateRequisition('job_description', template);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = (sendForReview: boolean = false) => {
     if (validateStep(currentStep)) {
       console.log('Creating requisition...', currentRequisition);
-      alert('Requisition created successfully!');
+      if (sendForReview) {
+        alert('Requisition created and sent for review!');
+      } else {
+        alert('Requisition created successfully!');
+      }
       onBack();
     }
   };
@@ -419,84 +423,37 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
         </div>
       </div>
 
-      {/* Experience & Salary - Grouped */}
+      {/* Experience */}
       <div className="bg-gray-50 rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Experience & Compensation</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Experience Range (Years)
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Minimum</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="20"
-                  value={currentRequisition.min_experience}
-                  onChange={(e) => updateRequisition('min_experience', parseInt(e.target.value) || 0)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Maximum</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="20"
-                  value={currentRequisition.max_experience}
-                  onChange={(e) => updateRequisition('max_experience', parseInt(e.target.value) || 0)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-            </div>
-          </div>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Experience</h3>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Budget Details
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Min</label>
-                <div className="flex">
-                  <select className="px-2 py-2 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-gray-50">
-                    <option value="USD">$</option>
-                    <option value="INR">₹</option>
-                    <option value="GBP">£</option>
-                  </select>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1000"
-                    value={currentRequisition.min_salary}
-                    onChange={(e) => updateRequisition('min_salary', parseInt(e.target.value) || 0)}
-                    className="flex-1 px-2 py-2 border-l-0 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Max</label>
-                <div className="flex">
-                  <select className="px-2 py-2 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-gray-50">
-                    <option value="USD">$</option>
-                    <option value="INR">₹</option>
-                    <option value="GBP">£</option>
-                  </select>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1000"
-                    value={currentRequisition.max_salary}
-                    onChange={(e) => updateRequisition('max_salary', parseInt(e.target.value) || 0)}
-                    className="flex-1 px-2 py-2 border-l-0 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                  />
-                </div>
-              </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            Experience Range (Years)
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-gray-600 mb-1">Minimum</label>
+              <input
+                type="number"
+                min="0"
+                max="20"
+                value={currentRequisition.min_experience}
+                onChange={(e) => updateRequisition('min_experience', parseInt(e.target.value) || 0)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
             </div>
-            <p className="mt-1 text-xs text-gray-500">Budget range auto-suggested based on position and experience</p>
+            <div>
+              <label className="block text-xs text-gray-600 mb-1">Maximum</label>
+              <input
+                type="number"
+                min="0"
+                max="20"
+                value={currentRequisition.max_experience}
+                onChange={(e) => updateRequisition('max_experience', parseInt(e.target.value) || 0)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -601,247 +558,146 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
   );
 
   const renderSkills = () => (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-h-[600px]">
-      {/* Left Side - Skills Section */}
-      <div className="space-y-6 flex flex-col">
-        {/* Mandatory Skills */}
-        <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700 mb-4">
-            Required Skills *
-          </label>
-          
-          <div className="mb-4">
-            <div className="flex flex-wrap gap-2 mb-3 min-h-[2.5rem] p-3 border border-gray-300 rounded-lg bg-gray-50">
-              {currentRequisition.mandatory_skills.filter(skill => skill.trim()).length > 0 ? (
-                currentRequisition.mandatory_skills.filter(skill => skill.trim()).map((skill, index) => (
-                  <span
-                    key={index}
-                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800 border border-blue-200"
+    <div className="space-y-6">
+      {/* Mandatory Skills */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-4">
+          Required Skills *
+        </label>
+
+        <div className="mb-4">
+          <div className="flex flex-wrap gap-2 mb-3 min-h-[2.5rem] p-3 border border-gray-300 rounded-lg bg-gray-50">
+            {currentRequisition.mandatory_skills.filter(skill => skill.trim()).length > 0 ? (
+              currentRequisition.mandatory_skills.filter(skill => skill.trim()).map((skill, index) => (
+                <span
+                  key={index}
+                  className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800 border border-blue-200"
+                >
+                  {skill}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const skillIndex = currentRequisition.mandatory_skills.indexOf(skill);
+                      removeSkill('mandatory_skills', skillIndex);
+                    }}
+                    className="ml-2 text-blue-600 hover:text-blue-800 font-bold"
                   >
-                    {skill}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const skillIndex = currentRequisition.mandatory_skills.indexOf(skill);
-                        removeSkill('mandatory_skills', skillIndex);
-                      }}
-                      className="ml-2 text-blue-600 hover:text-blue-800 font-bold"
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))
-              ) : (
-                <span className="text-gray-500 text-sm">Auto-suggested skills will appear here</span>
-              )}
-            </div>
-            
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Type a skill and press Enter to add..."
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter' && e.currentTarget.value.trim() && currentRequisition.mandatory_skills.length < 10) {
-                    const newSkill = e.currentTarget.value.trim();
-                    if (!currentRequisition.mandatory_skills.includes(newSkill)) {
-                      setCurrentRequisition(prev => ({
-                        ...prev,
-                        mandatory_skills: [...prev.mandatory_skills.filter(s => s.trim()), newSkill]
-                      }));
-                      e.currentTarget.value = '';
-                    }
-                  }
-                }}
-              />
-            </div>
-            {validationErrors.mandatory_skills && (
-              <p className="mt-1 text-sm text-red-600 flex items-center">
-                <AlertCircle className="w-4 h-4 mr-1" />
-                {validationErrors.mandatory_skills}
-              </p>
+                    ×
+                  </button>
+                </span>
+              ))
+            ) : (
+              <span className="text-gray-500 text-sm">Auto-suggested skills will appear here</span>
             )}
-            <p className="mt-1 text-xs text-gray-500">
-              {currentRequisition.mandatory_skills.filter(s => s.trim()).length}/10 skills added
-            </p>
           </div>
-        </div>
 
-        {/* Optional Skills */}
-        <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700 mb-4">
-            Nice-to-Have Skills
-            <span className="text-gray-500 font-normal ml-1">(Optional)</span>
-          </label>
-          
-          <div className="mb-4">
-            <div className="flex flex-wrap gap-2 mb-3 min-h-[2.5rem] p-3 border border-gray-300 rounded-lg bg-gray-50">
-              {currentRequisition.optional_skills.filter(skill => skill.trim()).length > 0 ? (
-                currentRequisition.optional_skills.filter(skill => skill.trim()).map((skill, index) => (
-                  <span
-                    key={index}
-                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700 border border-gray-200"
-                  >
-                    {skill}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const skillIndex = currentRequisition.optional_skills.indexOf(skill);
-                        removeSkill('optional_skills', skillIndex);
-                      }}
-                      className="ml-2 text-gray-600 hover:text-gray-800 font-bold"
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))
-              ) : (
-                <span className="text-gray-500 text-sm">Add optional skills that would be beneficial</span>
-              )}
-            </div>
-            
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Type an optional skill and press Enter..."
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter' && e.currentTarget.value.trim()) {
-                    const newSkill = e.currentTarget.value.trim();
-                    if (!currentRequisition.optional_skills.includes(newSkill)) {
-                      setCurrentRequisition(prev => ({
-                        ...prev,
-                        optional_skills: [...prev.optional_skills.filter(s => s.trim()), newSkill]
-                      }));
-                      e.currentTarget.value = '';
-                    }
-                  }
-                }}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Skills Suggestions */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-auto">
-          <h4 className="font-medium text-blue-900 mb-2">Popular Skills for {currentRequisition.position_title || 'This Position'}</h4>
-          <div className="flex flex-wrap gap-2">
-            {['TypeScript', 'AWS', 'Docker', 'Kubernetes', 'GraphQL', 'MongoDB', 'Redis', 'Microservices'].map(skill => (
-              <button
-                key={skill}
-                type="button"
-                onClick={() => {
-                  if (!currentRequisition.optional_skills.includes(skill)) {
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Type a skill and press Enter to add..."
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && e.currentTarget.value.trim() && currentRequisition.mandatory_skills.length < 10) {
+                  const newSkill = e.currentTarget.value.trim();
+                  if (!currentRequisition.mandatory_skills.includes(newSkill)) {
                     setCurrentRequisition(prev => ({
                       ...prev,
-                      optional_skills: [...prev.optional_skills.filter(s => s.trim()), skill]
+                      mandatory_skills: [...prev.mandatory_skills.filter(s => s.trim()), newSkill]
                     }));
+                    e.currentTarget.value = '';
                   }
-                }}
-                className="px-3 py-1 text-sm bg-white border border-blue-300 text-blue-700 rounded-full hover:bg-blue-100 transition-colors"
-              >
-                + {skill}
-              </button>
-            ))}
+                }
+              }}
+            />
+          </div>
+          {validationErrors.mandatory_skills && (
+            <p className="mt-1 text-sm text-red-600 flex items-center">
+              <AlertCircle className="w-4 h-4 mr-1" />
+              {validationErrors.mandatory_skills}
+            </p>
+          )}
+          <p className="mt-1 text-xs text-gray-500">
+            {currentRequisition.mandatory_skills.filter(s => s.trim()).length}/10 skills added
+          </p>
+        </div>
+      </div>
+
+      {/* Optional Skills */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-4">
+          Nice-to-Have Skills
+          <span className="text-gray-500 font-normal ml-1">(Optional)</span>
+        </label>
+
+        <div className="mb-4">
+          <div className="flex flex-wrap gap-2 mb-3 min-h-[2.5rem] p-3 border border-gray-300 rounded-lg bg-gray-50">
+            {currentRequisition.optional_skills.filter(skill => skill.trim()).length > 0 ? (
+              currentRequisition.optional_skills.filter(skill => skill.trim()).map((skill, index) => (
+                <span
+                  key={index}
+                  className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700 border border-gray-200"
+                >
+                  {skill}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const skillIndex = currentRequisition.optional_skills.indexOf(skill);
+                      removeSkill('optional_skills', skillIndex);
+                    }}
+                    className="ml-2 text-gray-600 hover:text-gray-800 font-bold"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))
+            ) : (
+              <span className="text-gray-500 text-sm">Add optional skills that would be beneficial</span>
+            )}
+          </div>
+
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Type an optional skill and press Enter..."
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                  const newSkill = e.currentTarget.value.trim();
+                  if (!currentRequisition.optional_skills.includes(newSkill)) {
+                    setCurrentRequisition(prev => ({
+                      ...prev,
+                      optional_skills: [...prev.optional_skills.filter(s => s.trim()), newSkill]
+                    }));
+                    e.currentTarget.value = '';
+                  }
+                }
+              }}
+            />
           </div>
         </div>
       </div>
 
-      {/* Right Side - Hiring Complexity Section */}
-      <div className="flex flex-col h-full">
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-6">Hiring Complexity</h3>
-          
-          {/* Complexity Indicator */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm text-gray-600">Low</span>
-              <span className="text-sm text-gray-600">Medium</span>
-              <span className="text-sm text-gray-600">High</span>
-            </div>
-            <div className="relative">
-              <div className="w-full h-2 bg-gray-200 rounded-full">
-                <div 
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    complexity.color === 'green' ? 'bg-green-500' :
-                    complexity.color === 'amber' ? 'bg-amber-500' :
-                    'bg-red-500'
-                  }`}
-                  style={{ width: `${complexity.percentage}%` }}
-                ></div>
-              </div>
-              <div 
-                className="absolute -top-8 transform -translate-x-1/2 transition-all duration-300"
-                style={{ left: `${complexity.percentage}%` }}
-              >
-                <div className={`w-12 h-12 border-2 rounded-full flex items-center justify-center ${
-                  complexity.color === 'green' ? 'bg-green-100 border-green-500' :
-                  complexity.color === 'amber' ? 'bg-amber-100 border-amber-500' :
-                  'bg-red-100 border-red-500'
-                }`}>
-                  <span className={`text-lg font-bold ${
-                    complexity.color === 'green' ? 'text-green-700' :
-                    complexity.color === 'amber' ? 'text-amber-700' :
-                    'text-red-700'
-                  }`}>
-                    {complexity.badge}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Analysis Note */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <div className="flex items-start space-x-3">
-              <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-blue-800">
-                Analysis based on {currentRequisition.mandatory_skills.filter(s => s.trim()).length} required skills and current market data
-              </p>
-            </div>
-          </div>
-
-          {/* Talent Pool Availability */}
-          <div className="border-l-4 border-blue-500 pl-4 mb-6">
-            <div className="flex items-center space-x-2 mb-2">
-              <Users className="w-5 h-5 text-gray-600" />
-              <h4 className="font-medium text-gray-700">Talent Pool Availability</h4>
-            </div>
-            <div className="mb-2">
-              <span className="text-2xl font-bold text-gray-900">{complexity.talentPool}</span>
-            </div>
-            <p className="text-sm text-gray-600">
-              {complexity.talentPoolDesc}
-            </p>
-          </div>
-
-          {/* Expected Notice Period */}
-          <div className="border-l-4 border-amber-500 pl-4 mb-6">
-            <div className="flex items-center space-x-2 mb-2">
-              <Calendar className="w-5 h-5 text-gray-600" />
-              <h4 className="font-medium text-gray-700">Expected Notice Period</h4>
-            </div>
-            <div className="mb-2">
-              <span className="text-2xl font-bold text-gray-900">{complexity.noticePeriod}</span>
-            </div>
-            <p className="text-sm text-gray-600">
-              {complexity.noticePeriodDesc}
-            </p>
-          </div>
-
-          {/* Compensation Outlook */}
-          <div className="border-l-4 border-green-500 pl-4">
-            <div className="flex items-center space-x-2 mb-2">
-              <DollarSign className="w-5 h-5 text-gray-600" />
-              <h4 className="font-medium text-gray-700">Compensation Outlook</h4>
-            </div>
-            <div className="mb-2">
-              <span className="text-2xl font-bold text-gray-900">{complexity.compensation}</span>
-            </div>
-            <p className="text-sm text-gray-600">
-              {complexity.compensationDesc}
-            </p>
-          </div>
+      {/* Skills Suggestions */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <h4 className="font-medium text-blue-900 mb-2">Popular Skills for {currentRequisition.position_title || 'This Position'}</h4>
+        <div className="flex flex-wrap gap-2">
+          {['TypeScript', 'AWS', 'Docker', 'Kubernetes', 'GraphQL', 'MongoDB', 'Redis', 'Microservices'].map(skill => (
+            <button
+              key={skill}
+              type="button"
+              onClick={() => {
+                if (!currentRequisition.optional_skills.includes(skill)) {
+                  setCurrentRequisition(prev => ({
+                    ...prev,
+                    optional_skills: [...prev.optional_skills.filter(s => s.trim()), skill]
+                  }));
+                }
+              }}
+              className="px-3 py-1 text-sm bg-white border border-blue-300 text-blue-700 rounded-full hover:bg-blue-100 transition-colors"
+            >
+              + {skill}
+            </button>
+          ))}
         </div>
       </div>
     </div>
@@ -1231,13 +1087,22 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
             <ArrowRight className="w-4 h-4" />
           </button>
         ) : (
-          <button
-            onClick={handleSubmit}
-            className="flex items-center space-x-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
-          >
-            <Save className="w-4 h-4" />
-            <span>Create Requisition</span>
-          </button>
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => handleSubmit(false)}
+              className="flex items-center space-x-2 bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              <Save className="w-4 h-4" />
+              <span>Create</span>
+            </button>
+            <button
+              onClick={() => handleSubmit(true)}
+              className="flex items-center space-x-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <Send className="w-4 h-4" />
+              <span>Create and Send for Review</span>
+            </button>
+          </div>
         )}
       </div>
     </div>
