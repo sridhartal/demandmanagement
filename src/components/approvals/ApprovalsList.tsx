@@ -25,9 +25,10 @@ interface Review {
 interface ApprovalsListProps {
   onViewReview?: (reviewId: string) => void;
   reviewId?: string | null;
+  onNavigate?: (tab: string) => void;
 }
 
-export function ApprovalsList({ onViewReview, reviewId }: ApprovalsListProps) {
+export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsListProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkComment, setBulkComment] = useState('');
   const [showBulkActions, setShowBulkActions] = useState(false);
@@ -398,10 +399,27 @@ export function ApprovalsList({ onViewReview, reviewId }: ApprovalsListProps) {
 
   return (
     <div className="space-y-6 flex flex-col">
-      {/* Header */}
+      {/* Header with Sub-navigation */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Reviews</h1>
         <p className="text-gray-600">Review and manage requisitions sent for approval</p>
+
+        {/* Sub-navigation tabs */}
+        {onNavigate && (
+          <div className="flex space-x-1 mt-4 border-b border-gray-200">
+            <button
+              className="px-4 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-600"
+            >
+              Reviews
+            </button>
+            <button
+              onClick={() => onNavigate('ansr-review')}
+              className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:border-b-2 hover:border-gray-300"
+            >
+              ANSR Review
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Stats Cards */}

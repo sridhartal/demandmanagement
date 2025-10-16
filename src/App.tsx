@@ -10,6 +10,7 @@ import { BulkUpload } from './components/demand-plans/BulkUpload';
 import { AICreate } from './components/demand-plans/AICreate';
 import { DemandPlansList } from './components/demand-plans/DemandPlansList';
 import { ApprovalsList } from './components/approvals/ApprovalsList';
+import { ANSRReview } from './components/approvals/ANSRReview';
 import { Analytics } from './components/analytics/Analytics';
 import { OrgChartBuilder } from './components/org-chart/OrgChartBuilder';
 import { Settings } from './components/settings/Settings';
@@ -51,6 +52,7 @@ function App() {
       'bulk-upload': { label: 'Bulk Upload', parent: 'demand-plans' },
       'ai-create': { label: 'AI Assistant', parent: 'demand-plans' },
       'approvals': { label: 'Reviews' },
+      'ansr-review': { label: 'ANSR Review', parent: 'approvals' },
       'review-detail': { label: 'Review Details', parent: 'approvals' },
       'analytics': { label: 'Analytics & Reports' },
       'org-chart': { label: 'Org Chart Builder' },
@@ -94,7 +96,9 @@ function App() {
       case 'demand-plans':
         return <DemandPlansList onNavigate={handleTabChange} />;
       case 'approvals':
-        return <ApprovalsList onViewReview={handleViewReview} />;
+        return <ApprovalsList onViewReview={handleViewReview} onNavigate={handleTabChange} />;
+      case 'ansr-review':
+        return <ANSRReview />;
       case 'review-detail':
         return <ApprovalsList onViewReview={handleViewReview} reviewId={selectedReviewId} />;
       case 'analytics':

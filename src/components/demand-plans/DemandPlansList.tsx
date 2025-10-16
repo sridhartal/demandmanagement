@@ -173,7 +173,7 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -182,6 +182,20 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <Users className="w-6 h-6 text-blue-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-600 text-sm font-medium">Draft Review</p>
+              <p className="text-2xl font-bold text-gray-600">
+                {mockDemandPlans.filter(p => p.status === 'draft').length}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+              <AlertCircle className="w-6 h-6 text-gray-600" />
             </div>
           </div>
         </div>
