@@ -173,86 +173,100 @@ export function DemandPlansList({ onNavigate }: DemandPlansListProps) {
       </div>
 
       {/* Stats Cards - All in one line */}
-      <div className="grid grid-cols-2 md:grid-cols-7 gap-4">
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <div className="flex flex-col items-center justify-center text-center">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mb-2">
-              <Users className="w-5 h-5 text-blue-600" />
+      <div className="grid grid-cols-2 md:grid-cols-7 gap-3">
+        <div className="bg-white rounded-xl border border-gray-200 p-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Users className="w-4 h-4 text-blue-600" />
             </div>
-            <p className="text-gray-600 text-xs font-medium mb-1">Total</p>
-            <p className="text-2xl font-bold text-gray-900">{mockDemandPlans.length}</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-gray-600 text-xs font-medium whitespace-nowrap">Total</p>
+              <p className="text-xl font-bold text-gray-900">{mockDemandPlans.length}</p>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <div className="flex flex-col items-center justify-center text-center">
-            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
-              <AlertCircle className="w-5 h-5 text-gray-600" />
+        <div className="bg-white rounded-xl border border-gray-200 p-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <AlertCircle className="w-4 h-4 text-gray-600" />
             </div>
-            <p className="text-gray-600 text-xs font-medium mb-1">Draft</p>
-            <p className="text-2xl font-bold text-gray-600">
-              {mockDemandPlans.filter(p => p.status === 'draft').length}
-            </p>
+            <div className="flex-1 min-w-0">
+              <p className="text-gray-600 text-xs font-medium whitespace-nowrap">Draft</p>
+              <p className="text-xl font-bold text-gray-600">
+                {mockDemandPlans.filter(p => p.status === 'draft').length}
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <div className="flex flex-col items-center justify-center text-center">
-            <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mb-2">
-              <FileText className="w-5 h-5 text-slate-600" />
+        <div className="bg-white rounded-xl border border-gray-200 p-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <FileText className="w-4 h-4 text-slate-600" />
             </div>
-            <p className="text-gray-600 text-xs font-medium mb-1">Draft Review</p>
-            <p className="text-2xl font-bold text-slate-600">
-              {mockDemandPlans.filter(p => p.status === 'draft').length}
-            </p>
+            <div className="flex-1 min-w-0">
+              <p className="text-gray-600 text-xs font-medium whitespace-nowrap">Draft Review</p>
+              <p className="text-xl font-bold text-slate-600">
+                {mockDemandPlans.filter(p => p.status === 'draft').length}
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <div className="flex flex-col items-center justify-center text-center">
-            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mb-2">
-              <FileCheck className="w-5 h-5 text-purple-600" />
+        <div className="bg-white rounded-xl border border-gray-200 p-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <FileCheck className="w-4 h-4 text-purple-600" />
             </div>
-            <p className="text-gray-600 text-xs font-medium mb-1">ANSR Review</p>
-            <p className="text-2xl font-bold text-purple-600">
-              {mockDemandPlans.filter(p => p.status === 'draft').length}
-            </p>
+            <div className="flex-1 min-w-0">
+              <p className="text-gray-600 text-xs font-medium whitespace-nowrap">ANSR Review</p>
+              <p className="text-xl font-bold text-purple-600">
+                {mockDemandPlans.filter(p => p.status === 'draft').length}
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <div className="flex flex-col items-center justify-center text-center">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mb-2">
-              <Inbox className="w-5 h-5 text-blue-600" />
+        <div className="bg-white rounded-xl border border-gray-200 p-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Inbox className="w-4 h-4 text-blue-600" />
             </div>
-            <p className="text-gray-600 text-xs font-medium mb-1">Intake</p>
-            <p className="text-2xl font-bold text-blue-600">
-              {mockDemandPlans.filter(p => p.status === 'pending_approval').length}
-            </p>
+            <div className="flex-1 min-w-0">
+              <p className="text-gray-600 text-xs font-medium whitespace-nowrap">Intake</p>
+              <p className="text-xl font-bold text-blue-600">
+                {mockDemandPlans.filter(p => p.status === 'pending_approval').length}
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <div className="flex flex-col items-center justify-center text-center">
-            <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center mb-2">
-              <ClipboardCheck className="w-5 h-5 text-amber-600" />
+        <div className="bg-white rounded-xl border border-gray-200 p-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <ClipboardCheck className="w-4 h-4 text-amber-600" />
             </div>
-            <p className="text-gray-600 text-xs font-medium mb-1">Final Review</p>
-            <p className="text-2xl font-bold text-amber-600">
-              {mockDemandPlans.filter(p => p.status === 'approved').length}
-            </p>
+            <div className="flex-1 min-w-0">
+              <p className="text-gray-600 text-xs font-medium whitespace-nowrap">Final Review</p>
+              <p className="text-xl font-bold text-amber-600">
+                {mockDemandPlans.filter(p => p.status === 'approved').length}
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 p-4">
-          <div className="flex flex-col items-center justify-center text-center">
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mb-2">
-              <Rocket className="w-5 h-5 text-green-600" />
+        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 p-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Rocket className="w-4 h-4 text-green-600" />
             </div>
-            <p className="text-gray-600 text-xs font-medium mb-1">Live</p>
-            <p className="text-2xl font-bold text-green-600">
-              {mockDemandPlans.filter(p => p.status === 'rejected').length}
-            </p>
+            <div className="flex-1 min-w-0">
+              <p className="text-gray-600 text-xs font-medium whitespace-nowrap">Live</p>
+              <p className="text-xl font-bold text-green-600">
+                {mockDemandPlans.filter(p => p.status === 'rejected').length}
+              </p>
+            </div>
           </div>
         </div>
       </div>
