@@ -155,7 +155,7 @@ WHAT WE OFFER
 
 export function JDCreator() {
   const { user } = useAuth();
-  const [templates, setTemplates] = useState<Template[]>([]);
+  const [templates, setTemplates] = useState<Template[]>(PREDEFINED_TEMPLATES);
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [editorContent, setEditorContent] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
