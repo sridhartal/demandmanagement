@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { 
-  BarChart3, 
-  FileText, 
-  Upload, 
-  Bot, 
-  Users, 
-  Settings, 
-  ChevronDown, 
+import {
+  BarChart3,
+  FileText,
+  Upload,
+  Bot,
+  Users,
+  Settings,
+  ChevronDown,
   ChevronRight,
   Plus,
   List,
@@ -15,7 +15,8 @@ import {
   Building2,
   CheckCircle,
   Clock,
-  TrendingUp
+  TrendingUp,
+  Edit
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -47,6 +48,11 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
         { id: 'bulk-upload', label: 'Bulk Import', icon: Upload },
         { id: 'ai-create', label: 'AI Assistant', icon: Bot }
       ]
+    },
+    {
+      id: 'jd-creator',
+      label: 'JD Creator',
+      icon: Edit
     },
     {
       id: 'approvals',

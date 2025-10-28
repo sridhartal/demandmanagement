@@ -14,6 +14,7 @@ import { ANSRReview } from './components/approvals/ANSRReview';
 import { Analytics } from './components/analytics/Analytics';
 import { OrgChartBuilder } from './components/org-chart/OrgChartBuilder';
 import { Settings } from './components/settings/Settings';
+import { JDCreator } from './components/jd-creator/JDCreator';
 
 function App() {
   const { steps, currentStep, isOnboardingActive, completeStep, skipOnboarding } = useOnboarding();
@@ -51,6 +52,7 @@ function App() {
       'create-manual': { label: 'Create Manually', parent: 'demand-plans' },
       'bulk-upload': { label: 'Bulk Upload', parent: 'demand-plans' },
       'ai-create': { label: 'AI Assistant', parent: 'demand-plans' },
+      'jd-creator': { label: 'JD Creator' },
       'approvals': { label: 'Reviews' },
       'ansr-review': { label: 'ANSR Review', parent: 'approvals' },
       'review-detail': { label: 'Review Details', parent: 'approvals' },
@@ -95,6 +97,8 @@ function App() {
         return <AICreate onBack={() => setActiveTab('demand-plans')} />;
       case 'demand-plans':
         return <DemandPlansList onNavigate={handleTabChange} />;
+      case 'jd-creator':
+        return <JDCreator />;
       case 'approvals':
         return <ApprovalsList onViewReview={handleViewReview} onNavigate={handleTabChange} />;
       case 'ansr-review':
