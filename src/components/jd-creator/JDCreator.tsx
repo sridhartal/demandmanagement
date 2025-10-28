@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Plus, Save, Trash2, Sparkles, FileText, ChevronRight, Edit2, X, Upload, Send, MessageSquare } from 'lucide-react';
+import { Search, Plus, Save, Trash2, Sparkles, FileText, ChevronRight, CreditCard as Edit2, X, Upload, Send, MessageSquare } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../hooks/useAuth';
 
