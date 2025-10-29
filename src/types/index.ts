@@ -20,6 +20,13 @@ export interface DemandPlan {
   total_positions: number;
   requisitions: Requisition[];
   approval_history: ApprovalHistory[];
+  stage?: string;
+  department?: string;
+  location?: string;
+  experience_range?: string;
+  mandatory_skills?: string[];
+  optional_skills?: string[];
+  job_description?: string;
 }
 
 export interface Requisition {
