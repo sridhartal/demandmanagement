@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Clock, CheckCircle, XCircle, MessageSquare, User, Calendar, FileText, Eye, ThumbsUp, ThumbsDown, FileCheck, ClipboardCheck, X, Users, DollarSign, TrendingUp, Info, Briefcase, MapPin, Send, ExternalLink, Plus, ArrowRight, Save } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, MessageSquare, User, Calendar, FileText, Eye, ThumbsUp, ThumbsDown, FileCheck, ClipboardCheck, X, Users, DollarSign, TrendingUp, Info, Briefcase, MapPin, Send, ExternalLink, Plus, ArrowRight, Save, Download } from 'lucide-react';
 import { ApprovalHistory } from '../../types';
 
 interface Review {
@@ -39,7 +39,9 @@ interface ApprovalsListProps {
 export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsListProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkComment, setBulkComment] = useState('');
+  const [bulkApprovalComment, setBulkApprovalComment] = useState('');
   const [showBulkActions, setShowBulkActions] = useState(false);
+  const [bulkActionType, setBulkActionType] = useState<'approve' | 'reject' | null>(null);
   const [activeReviewTab, setActiveReviewTab] = useState<'draft' | 'ansr' | 'final'>('draft');
   const [newComment, setNewComment] = useState('');
   const [selectedJD, setSelectedJD] = useState('');
@@ -312,10 +314,18 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
       alert('Please select at least one requisition');
       return;
     }
-    console.log('Bulk approving:', selectedIds);
+    if (activeReviewTab === 'draft' || activeReviewTab === 'final') {
+      if (!bulkApprovalComment.trim()) {
+        alert('Please provide a comment');
+        return;
+      }
+    }
+    console.log('Bulk approving:', selectedIds, 'Comment:', bulkApprovalComment);
     alert(`${selectedIds.length} requisition(s) approved successfully!`);
     setSelectedIds([]);
+    setBulkApprovalComment('');
     setShowBulkActions(false);
+    setBulkActionType(null);
   };
 
   const handleBulkReject = () => {
@@ -332,6 +342,17 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
     setSelectedIds([]);
     setBulkComment('');
     setShowBulkActions(false);
+    setBulkActionType(null);
+  };
+
+  const handleBulkDownload = () => {
+    if (selectedIds.length === 0) {
+      alert('Please select at least one requisition');
+      return;
+    }
+    console.log('Bulk downloading:', selectedIds);
+    alert(`Downloading ${selectedIds.length} requisition(s)...`);
+    setSelectedIds([]);
   };
 
   const handleViewReviewClick = (review: Review) => {
@@ -341,9 +362,11 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
   };
 
   const handleApprove = (id: string) => {
-    if (!newComment.trim()) {
-      alert('Please provide a comment');
-      return;
+    if (activeReviewTab === 'draft' || activeReviewTab === 'final') {
+      if (!newComment.trim()) {
+        alert('Please provide a comment');
+        return;
+      }
     }
     console.log('Approving:', id, 'Comment:', newComment);
     alert('Requisition approved successfully!');
@@ -351,9 +374,11 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
   };
 
   const handleReject = (id: string) => {
-    if (!newComment.trim()) {
-      alert('Please provide rejection comments');
-      return;
+    if (activeReviewTab === 'draft' || activeReviewTab === 'final') {
+      if (!newComment.trim()) {
+        alert('Please provide rejection comments');
+        return;
+      }
     }
     console.log('Rejecting:', id, 'Comments:', newComment);
     alert('Requisition rejected with comments.');
@@ -600,7 +625,7 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
                   )}
                 </div>
 
-                {activeReviewTab === 'draft' && (
+                {(activeReviewTab === 'draft' || activeReviewTab === 'final') && (
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <label className="block text-sm font-medium text-gray-900 mb-2">
                       Select Job Description Template
@@ -629,7 +654,7 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
                 )}
               </div>
 
-              {activeReviewTab === 'draft' && (
+              {(activeReviewTab === 'draft' || activeReviewTab === 'final') && (
                 <div className="border-t border-gray-200 pt-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Comments History</h3>
 
@@ -696,7 +721,7 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
               )}
             </div>
 
-            {activeReviewTab === 'draft' && (
+            {(activeReviewTab === 'draft' || activeReviewTab === 'final') && (
               <div className="w-[30%] p-6 bg-gray-50 space-y-6">
               <div>
                 <h3 className="text-xl font-bold text-gray-900 mb-6">Hiring Complexity</h3>
@@ -830,20 +855,42 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
               {selectedIds.length} selected
             </span>
             <div className="flex items-center space-x-2">
+              {activeReviewTab === 'ansr' ? (
+                <button
+                  onClick={handleBulkDownload}
+                  className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center space-x-2"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Download Selected</span>
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={() => {
+                      setShowBulkActions(true);
+                      setBulkActionType('approve');
+                    }}
+                    className="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                  >
+                    Approve Selected
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowBulkActions(true);
+                      setBulkActionType('reject');
+                    }}
+                    className="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                  >
+                    Reject Selected
+                  </button>
+                </>
+              )}
               <button
-                onClick={handleBulkApprove}
-                className="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
-              >
-                Approve Selected
-              </button>
-              <button
-                onClick={() => setShowBulkActions(!showBulkActions)}
-                className="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
-              >
-                Reject Selected
-              </button>
-              <button
-                onClick={() => setSelectedIds([])}
+                onClick={() => {
+                  setSelectedIds([]);
+                  setShowBulkActions(false);
+                  setBulkActionType(null);
+                }}
                 className="px-3 py-1.5 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
               >
                 Clear
@@ -852,7 +899,7 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
           </div>
         )}
 
-        {showBulkActions && selectedIds.length > 0 && (
+        {showBulkActions && selectedIds.length > 0 && bulkActionType === 'reject' && (
           <div className="bg-amber-50 border-b border-amber-200 px-6 py-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Rejection Comments (Required)
@@ -864,12 +911,57 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm"
               rows={2}
             />
-            <button
-              onClick={handleBulkReject}
-              className="mt-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
-            >
-              Submit Rejection
-            </button>
+            <div className="flex items-center space-x-2 mt-2">
+              <button
+                onClick={handleBulkReject}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+              >
+                Submit Rejection
+              </button>
+              <button
+                onClick={() => {
+                  setShowBulkActions(false);
+                  setBulkActionType(null);
+                  setBulkComment('');
+                }}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm font-medium"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
+        {showBulkActions && selectedIds.length > 0 && bulkActionType === 'approve' && (
+          <div className="bg-green-50 border-b border-green-200 px-6 py-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Approval Comments (Required)
+            </label>
+            <textarea
+              value={bulkApprovalComment}
+              onChange={(e) => setBulkApprovalComment(e.target.value)}
+              placeholder="Provide approval comments..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+              rows={2}
+            />
+            <div className="flex items-center space-x-2 mt-2">
+              <button
+                onClick={handleBulkApprove}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+              >
+                Submit Approval
+              </button>
+              <button
+                onClick={() => {
+                  setShowBulkActions(false);
+                  setBulkActionType(null);
+                  setBulkApprovalComment('');
+                }}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm font-medium"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         )}
 
