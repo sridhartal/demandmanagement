@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Clock, CheckCircle, XCircle, MessageSquare, User, Calendar, FileText, Eye, ThumbsUp, ThumbsDown, FileCheck, ClipboardCheck, X, Users, DollarSign, TrendingUp, Info, Briefcase, MapPin, Send, ExternalLink, Plus } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, MessageSquare, User, Calendar, FileText, Eye, ThumbsUp, ThumbsDown, FileCheck, ClipboardCheck, X, Users, DollarSign, TrendingUp, Info, Briefcase, MapPin, Send, ExternalLink, Plus, ArrowRight, Save } from 'lucide-react';
 import { ApprovalHistory } from '../../types';
 
 interface Review {
@@ -43,6 +43,7 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
   const [activeReviewTab, setActiveReviewTab] = useState<'draft' | 'ansr' | 'final'>('draft');
   const [newComment, setNewComment] = useState('');
   const [selectedJD, setSelectedJD] = useState('');
+  const [editData, setEditData] = useState<Partial<Review>>({});
 
   // Mock JD Templates
   const mockJDTemplates = [
@@ -359,6 +360,20 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
     setNewComment('');
   };
 
+  const handleMoveToIntake = () => {
+    console.log('Moving to intake:', editData);
+    alert('Requisition moved to intake successfully!');
+  };
+
+  const handleUpdateField = (field: keyof Review, value: any) => {
+    setEditData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSaveChanges = () => {
+    console.log('Saving changes:', editData);
+    alert('Changes saved successfully!');
+  };
+
   const getFilteredReviews = () => {
     if (activeReviewTab === 'draft') {
       return mockReviews.filter(r => r.previous_stage === 'Draft');
@@ -376,10 +391,140 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
   const selectedReview = reviewId ? mockReviews.find(r => r.id === reviewId) : null;
 
   if (reviewId && selectedReview) {
+    // Initialize edit data when opening ANSR review
+    if (activeReviewTab === 'ansr' && Object.keys(editData).length === 0) {
+      setEditData(selectedReview);
+    }
+
     const complexityInfo = getComplexityInfo(selectedReview.complexity || 'Low');
     const talentPoolInfo = getTalentPoolInfo(selectedReview.talent_pool || 'Unknown');
     const noticePeriodInfo = getNoticePeriodInfo(selectedReview.complexity || 'Low');
     const compensationInfo = getCompensationInfo(selectedReview.complexity || 'Low');
+
+    // ANSR Review Edit Mode
+    if (activeReviewTab === 'ansr') {
+      return (
+        <div className="space-y-6">
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">Edit Requisition</h2>
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={handleSaveChanges}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                  <Save className="w-4 h-4 inline mr-2" />
+                  Save Changes
+                </button>
+                <button
+                  onClick={handleMoveToIntake}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                >
+                  Move to Intake
+                  <ArrowRight className="w-4 h-4 inline ml-2" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Position Title
+                  </label>
+                  <input
+                    type="text"
+                    value={editData.position_title || ''}
+                    onChange={(e) => handleUpdateField('position_title', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Department
+                  </label>
+                  <input
+                    type="text"
+                    value={editData.department || ''}
+                    onChange={(e) => handleUpdateField('department', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Location
+                  </label>
+                  <input
+                    type="text"
+                    value={editData.location || ''}
+                    onChange={(e) => handleUpdateField('location', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Total Positions
+                  </label>
+                  <input
+                    type="number"
+                    value={editData.total_positions || 0}
+                    onChange={(e) => handleUpdateField('total_positions', parseInt(e.target.value))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Experience Range
+                  </label>
+                  <input
+                    type="text"
+                    value={editData.experience_range || ''}
+                    onChange={(e) => handleUpdateField('experience_range', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Required Skills (comma-separated)
+                </label>
+                <input
+                  type="text"
+                  value={editData.mandatory_skills?.join(', ') || ''}
+                  onChange={(e) => handleUpdateField('mandatory_skills', e.target.value.split(',').map(s => s.trim()))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nice-to-Have Skills (comma-separated)
+                </label>
+                <input
+                  type="text"
+                  value={editData.optional_skills?.join(', ') || ''}
+                  onChange={(e) => handleUpdateField('optional_skills', e.target.value.split(',').map(s => s.trim()))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Job Description
+                </label>
+                <textarea
+                  value={editData.job_description || ''}
+                  onChange={(e) => handleUpdateField('job_description', e.target.value)}
+                  rows={6}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div className="space-y-6">
@@ -389,7 +534,7 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
           </div>
 
           <div className="flex">
-            <div className="w-[70%] p-6 border-r border-gray-200 space-y-6">
+            <div className={`${activeReviewTab === 'draft' ? 'w-[70%] border-r' : 'w-full'} p-6 border-gray-200 space-y-6`}>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Requisition Details</h3>
               </div>
@@ -551,7 +696,8 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
               )}
             </div>
 
-            <div className="w-[30%] p-6 bg-gray-50 space-y-6">
+            {activeReviewTab === 'draft' && (
+              <div className="w-[30%] p-6 bg-gray-50 space-y-6">
               <div>
                 <h3 className="text-xl font-bold text-gray-900 mb-6">Hiring Complexity</h3>
 
@@ -627,7 +773,8 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
                   </div>
                 </div>
               </div>
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -673,35 +820,6 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
           >
             Final Reviews ({finalReviews.length})
           </button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div>
-            <p className="text-gray-600 text-sm font-medium">Draft Reviews</p>
-            <p className="text-2xl font-bold text-purple-600">
-              {draftReviews.length}
-            </p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div>
-            <p className="text-gray-600 text-sm font-medium">ANSR Reviews</p>
-            <p className="text-2xl font-bold text-blue-600">
-              {ansrReviews.length}
-            </p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div>
-            <p className="text-gray-600 text-sm font-medium">Final Reviews</p>
-            <p className="text-2xl font-bold text-green-600">
-              {finalReviews.length}
-            </p>
-          </div>
         </div>
       </div>
 
