@@ -230,7 +230,6 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
   const steps = [
     'Essential Details',
     'Skills & Requirements',
-    'Job Description',
     'Review & Create'
   ];
 
@@ -993,13 +992,6 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
           </div>
         )}
 
-        {/* Job Description Preview */}
-        <div>
-          <p className="text-sm font-medium text-gray-700 mb-2">Job Description</p>
-          <div className="bg-white p-4 rounded-lg border border-gray-200 max-h-40 overflow-y-auto">
-            <p className="text-gray-900 text-sm whitespace-pre-wrap">{currentRequisition.job_description}</p>
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -1063,8 +1055,7 @@ export function CreateManualPlan({ onBack, onBulkUpload }: CreateManualPlanProps
       <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8">
         {currentStep === 0 && renderEssentialDetails()}
         {currentStep === 1 && renderSkills()}
-        {currentStep === 2 && renderJobDescription()}
-        {currentStep === 3 && renderReview()}
+        {currentStep === 2 && renderReview()}
       </div>
 
       {/* Navigation */}
