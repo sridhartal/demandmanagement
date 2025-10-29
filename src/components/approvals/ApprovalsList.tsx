@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Clock, CheckCircle, XCircle, MessageSquare, User, Calendar, FileText, Eye, ThumbsUp, ThumbsDown, FileCheck, ClipboardCheck, X, Users, DollarSign, TrendingUp, Info, Briefcase, MapPin } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, MessageSquare, User, Calendar, FileText, Eye, ThumbsUp, ThumbsDown, FileCheck, ClipboardCheck, X, Users, DollarSign, TrendingUp, Info, Briefcase, MapPin, Send } from 'lucide-react';
 import { ApprovalHistory } from '../../types';
 
 interface Review {
@@ -8,7 +8,7 @@ interface Review {
   position_title: string;
   created_by: string;
   total_positions: number;
-  previous_stage: 'Draft' | 'Intake';
+  previous_stage: 'Draft' | 'Intake' | 'Final';
   comments: string;
   created_at: string;
   department?: string;
@@ -22,6 +22,14 @@ interface Review {
   compensation_range?: string;
 }
 
+interface Comment {
+  id: string;
+  user: string;
+  text: string;
+  timestamp: string;
+  action?: 'approved' | 'rejected' | 'comment';
+}
+
 interface ApprovalsListProps {
   onViewReview?: (reviewId: string) => void;
   reviewId?: string | null;
@@ -32,6 +40,33 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkComment, setBulkComment] = useState('');
   const [showBulkActions, setShowBulkActions] = useState(false);
+  const [activeReviewTab, setActiveReviewTab] = useState<'draft' | 'ansr' | 'final'>('draft');
+  const [newComment, setNewComment] = useState('');
+
+  // Mock comment history
+  const mockCommentHistory: Comment[] = [
+    {
+      id: '1',
+      user: 'John Doe',
+      text: 'Please review the skill requirements and salary range',
+      timestamp: '2024-01-18T09:15:00Z',
+      action: 'comment'
+    },
+    {
+      id: '2',
+      user: 'Sarah Smith',
+      text: 'Updated the salary range based on market analysis',
+      timestamp: '2024-01-18T14:30:00Z',
+      action: 'comment'
+    },
+    {
+      id: '3',
+      user: 'Mike Johnson',
+      text: 'Looks good, approving for next stage',
+      timestamp: '2024-01-19T10:00:00Z',
+      action: 'approved'
+    }
+  ];
 
   // Mock review data with full details
   const mockReviews: Review[] = [
@@ -51,7 +86,7 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
       optional_skills: ['GraphQL', 'Next.js', 'Tailwind'],
       job_description: 'We are seeking a Senior Frontend Developer to join our growing team...',
       complexity: 'Medium',
-      talent_pool: 'Moderate - 2,500+ candidates',
+      talent_pool: 'Moderate',
       compensation_range: '$120K - $160K'
     },
     {
@@ -70,7 +105,7 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
       optional_skills: ['TensorFlow', 'PyTorch', 'AWS'],
       job_description: 'Join our data science team to build predictive models...',
       complexity: 'High',
-      talent_pool: 'Limited - 800+ candidates',
+      talent_pool: 'Limited',
       compensation_range: '$130K - $180K'
     },
     {
@@ -89,7 +124,7 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
       optional_skills: ['Kubernetes', 'Redis', 'MongoDB'],
       job_description: 'We need experienced backend engineers to scale our platform...',
       complexity: 'Low',
-      talent_pool: 'High - 5,000+ candidates',
+      talent_pool: 'Large',
       compensation_range: '$110K - $150K'
     },
     {
@@ -98,7 +133,7 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
       position_title: 'DevOps Engineer',
       created_by: 'lisa.wong@company.com',
       total_positions: 4,
-      previous_stage: 'Intake',
+      previous_stage: 'Final',
       comments: 'Cloud infrastructure team expansion',
       created_at: '2024-01-10T13:30:00Z',
       department: 'Infrastructure',
@@ -108,7 +143,7 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
       optional_skills: ['GCP', 'Ansible', 'Monitoring'],
       job_description: 'Looking for DevOps engineers to manage our cloud infrastructure...',
       complexity: 'Medium',
-      talent_pool: 'Moderate - 1,800+ candidates',
+      talent_pool: 'Moderate',
       compensation_range: '$125K - $170K'
     }
   ];
@@ -120,21 +155,130 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
         return `${baseClasses} bg-purple-100 text-purple-800`;
       case 'Intake':
         return `${baseClasses} bg-blue-100 text-blue-800`;
+      case 'Final':
+        return `${baseClasses} bg-green-100 text-green-800`;
       default:
         return `${baseClasses} bg-gray-100 text-gray-800`;
     }
   };
 
-  const getComplexityColor = (complexity: string) => {
+  const getComplexityInfo = (complexity: string) => {
     switch (complexity) {
       case 'Low':
-        return { bg: 'bg-green-100', text: 'text-green-800', indicator: 'bg-green-500' };
+        return {
+          badge: 'L',
+          color: 'bg-green-100 text-green-700 border-green-300',
+          barColor: 'bg-green-500',
+          barWidth: '33%'
+        };
       case 'Medium':
-        return { bg: 'bg-amber-100', text: 'text-amber-800', indicator: 'bg-amber-500' };
+        return {
+          badge: 'M',
+          color: 'bg-amber-100 text-amber-700 border-amber-300',
+          barColor: 'bg-amber-500',
+          barWidth: '66%'
+        };
       case 'High':
-        return { bg: 'bg-red-100', text: 'text-red-800', indicator: 'bg-red-500' };
+        return {
+          badge: 'H',
+          color: 'bg-red-100 text-red-700 border-red-300',
+          barColor: 'bg-red-500',
+          barWidth: '100%'
+        };
       default:
-        return { bg: 'bg-gray-100', text: 'text-gray-800', indicator: 'bg-gray-500' };
+        return {
+          badge: '-',
+          color: 'bg-gray-100 text-gray-700 border-gray-300',
+          barColor: 'bg-gray-500',
+          barWidth: '0%'
+        };
+    }
+  };
+
+  const getTalentPoolInfo = (talentPool: string) => {
+    switch (talentPool) {
+      case 'Large':
+        return {
+          title: 'Talent Pool Availability',
+          value: 'Large',
+          description: 'Abundant candidates with this skill combination available in the market'
+        };
+      case 'Moderate':
+        return {
+          title: 'Talent Pool Availability',
+          value: 'Moderate',
+          description: 'Good availability of candidates with this skill combination in the market'
+        };
+      case 'Limited':
+        return {
+          title: 'Talent Pool Availability',
+          value: 'Limited',
+          description: 'Limited candidates with this specialized skill combination available'
+        };
+      default:
+        return {
+          title: 'Talent Pool Availability',
+          value: 'Unknown',
+          description: 'No data available'
+        };
+    }
+  };
+
+  const getNoticePeriodInfo = (complexity: string) => {
+    switch (complexity) {
+      case 'Low':
+        return {
+          title: 'Expected Notice Period',
+          value: '30-45 days',
+          description: 'Average notice period for candidates with this profile based on seniority and market demand'
+        };
+      case 'Medium':
+        return {
+          title: 'Expected Notice Period',
+          value: '30-45 days',
+          description: 'Average notice period for candidates with this profile based on seniority and market demand'
+        };
+      case 'High':
+        return {
+          title: 'Expected Notice Period',
+          value: '30-45 days',
+          description: 'Average notice period for candidates with this profile based on seniority and market demand'
+        };
+      default:
+        return {
+          title: 'Expected Notice Period',
+          value: 'Unknown',
+          description: ''
+        };
+    }
+  };
+
+  const getCompensationInfo = (complexity: string) => {
+    switch (complexity) {
+      case 'Low':
+        return {
+          title: 'Compensation Outlook',
+          value: 'Market standard',
+          description: 'Standard market rates apply; minimal salary negotiation expected'
+        };
+      case 'Medium':
+        return {
+          title: 'Compensation Outlook',
+          value: 'Market standard',
+          description: 'Standard market rates apply; minimal salary negotiation expected'
+        };
+      case 'High':
+        return {
+          title: 'Compensation Outlook',
+          value: 'Market standard',
+          description: 'Standard market rates apply; minimal salary negotiation expected'
+        };
+      default:
+        return {
+          title: 'Compensation Outlook',
+          value: 'Unknown',
+          description: ''
+        };
     }
   };
 
@@ -145,10 +289,11 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
   };
 
   const toggleSelectAll = () => {
-    if (selectedIds.length === mockReviews.length) {
+    const filteredReviews = getFilteredReviews();
+    if (selectedIds.length === filteredReviews.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(mockReviews.map(r => r.id));
+      setSelectedIds(filteredReviews.map(r => r.id));
     }
   };
 
@@ -186,42 +331,60 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
   };
 
   const handleApprove = (id: string) => {
-    console.log('Approving:', id);
+    if (!newComment.trim()) {
+      alert('Please provide a comment');
+      return;
+    }
+    console.log('Approving:', id, 'Comment:', newComment);
     alert('Requisition approved successfully!');
+    setNewComment('');
   };
 
   const handleReject = (id: string) => {
-    const comment = prompt('Provide rejection comments:');
-    if (comment) {
-      console.log('Rejecting:', id, 'Comments:', comment);
-      alert('Requisition rejected with comments.');
+    if (!newComment.trim()) {
+      alert('Please provide rejection comments');
+      return;
+    }
+    console.log('Rejecting:', id, 'Comments:', newComment);
+    alert('Requisition rejected with comments.');
+    setNewComment('');
+  };
+
+  const getFilteredReviews = () => {
+    if (activeReviewTab === 'draft') {
+      return mockReviews.filter(r => r.previous_stage === 'Draft');
+    } else if (activeReviewTab === 'ansr') {
+      return mockReviews.filter(r => r.previous_stage === 'Intake');
+    } else {
+      return mockReviews.filter(r => r.previous_stage === 'Final');
     }
   };
 
   const draftReviews = mockReviews.filter(r => r.previous_stage === 'Draft');
-  const finalReviews = mockReviews.filter(r => r.previous_stage === 'Intake');
+  const ansrReviews = mockReviews.filter(r => r.previous_stage === 'Intake');
+  const finalReviews = mockReviews.filter(r => r.previous_stage === 'Final');
 
   const selectedReview = reviewId ? mockReviews.find(r => r.id === reviewId) : null;
 
   if (reviewId && selectedReview) {
+    const complexityInfo = getComplexityInfo(selectedReview.complexity || 'Low');
+    const talentPoolInfo = getTalentPoolInfo(selectedReview.talent_pool || 'Unknown');
+    const noticePeriodInfo = getNoticePeriodInfo(selectedReview.complexity || 'Low');
+    const compensationInfo = getCompensationInfo(selectedReview.complexity || 'Low');
+
     return (
       <div className="space-y-6">
-        {/* Review Detail Page */}
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          {/* Header */}
           <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
             <h2 className="text-lg font-semibold text-gray-900">Review Details</h2>
           </div>
 
           <div className="flex">
-            {/* Left Side - Requisition Details (70%) */}
             <div className="w-[70%] p-6 border-r border-gray-200 space-y-6">
-              {/* Requisition Details Header */}
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Requisition Details</h3>
               </div>
 
-              {/* Position Summary */}
               <div>
                 <h4 className="text-xl font-bold text-gray-900 mb-4">{selectedReview.position_title}</h4>
 
@@ -253,7 +416,6 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
                   </div>
                 </div>
 
-                {/* Skills */}
                 <div className="mb-6">
                   <p className="text-sm font-medium text-gray-700 mb-2">Required Skills</p>
                   <div className="flex flex-wrap gap-2 mb-4">
@@ -284,13 +446,6 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
                   )}
                 </div>
 
-                {/* Job Description */}
-                <div className="mb-6">
-                  <p className="text-sm font-medium text-gray-700 mb-2">Job Description</p>
-                  <p className="text-sm text-gray-600 leading-relaxed">{selectedReview.job_description}</p>
-                </div>
-
-                {/* Comments */}
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                   <div className="flex items-start space-x-2">
                     <MessageSquare className="w-4 h-4 text-amber-600 mt-0.5" />
@@ -301,129 +456,200 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
                   </div>
                 </div>
               </div>
+
+              {activeReviewTab === 'draft' && (
+                <div className="border-t border-gray-200 pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Comments History</h3>
+
+                  <div className="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto mb-4 space-y-3">
+                    {mockCommentHistory.map((comment) => (
+                      <div key={comment.id} className="bg-white rounded-lg p-3 border border-gray-200">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                              <User className="w-4 h-4 text-blue-600" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">{comment.user}</p>
+                              <p className="text-xs text-gray-500">
+                                {new Date(comment.timestamp).toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                          {comment.action === 'approved' && (
+                            <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                              Approved
+                            </span>
+                          )}
+                          {comment.action === 'rejected' && (
+                            <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full">
+                              Rejected
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-700">{comment.text}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Add Comment
+                    </label>
+                    <textarea
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder="Enter your comments here..."
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                      rows={3}
+                    />
+                    <div className="flex justify-end space-x-3">
+                      <button
+                        onClick={() => handleReject(selectedReview.id)}
+                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                      >
+                        <XCircle className="w-4 h-4 inline mr-2" />
+                        Reject
+                      </button>
+                      <button
+                        onClick={() => handleApprove(selectedReview.id)}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                      >
+                        <CheckCircle className="w-4 h-4 inline mr-2" />
+                        Approve
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Right Side - Hiring Insights (30%) */}
             <div className="w-[30%] p-6 bg-gray-50 space-y-6">
               <div>
-                <div className="flex items-center space-x-2 mb-4">
-                  <TrendingUp className="w-5 h-5 text-gray-700" />
-                  <h3 className="text-lg font-semibold text-gray-900">Hiring Insights</h3>
-                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-6">Hiring Complexity</h3>
 
-                {/* Complexity Ticker */}
-                <div className="mb-6">
-                  <p className="text-sm font-medium text-gray-700 mb-3">Complexity Level</p>
-                  <div className="flex flex-col space-y-2">
-                    {['Low', 'Medium', 'High'].map((level) => {
-                      const isActive = selectedReview.complexity === level;
-                      const colors = getComplexityColor(level);
-                      return (
-                        <div
-                          key={level}
-                          className={`px-3 py-2 rounded-lg border-2 text-center transition-all ${
-                            isActive
-                              ? `${colors.bg} ${colors.text} border-current`
-                              : 'bg-white text-gray-400 border-gray-200'
-                          }`}
-                        >
-                          <div className="flex items-center justify-center space-x-2">
-                            <div className={`w-2 h-2 rounded-full ${isActive ? colors.indicator : 'bg-gray-300'}`} />
-                            <span className="text-sm font-medium">{level}</span>
-                          </div>
-                        </div>
-                      );
-                    })}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <span className="text-sm text-gray-600">Low</span>
+                    <span className="text-sm text-gray-600">Medium</span>
+                    <span className="text-sm text-gray-600">High</span>
+                  </div>
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold border-2 ${complexityInfo.color}`}>
+                    {complexityInfo.badge}
                   </div>
                 </div>
 
-                {/* Talent Pool */}
+                <div className="relative h-2 bg-gray-200 rounded-full mb-6">
+                  <div
+                    className={`absolute left-0 top-0 h-full ${complexityInfo.barColor} rounded-full transition-all`}
+                    style={{ width: complexityInfo.barWidth }}
+                  />
+                </div>
+
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                  <div className="flex items-start space-x-3">
-                    <Users className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900 mb-1">Talent Pool Availability</p>
-                      <p className="text-sm text-gray-700">{selectedReview.talent_pool}</p>
+                  <p className="text-xs text-blue-600 mb-2">
+                    Analysis based on {selectedReview.mandatory_skills?.length || 0} selected skills and current market data
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="border-l-4 border-blue-500 pl-4">
+                    <div className="flex items-start space-x-2 mb-2">
+                      <Users className="w-5 h-5 text-gray-600 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm font-medium text-gray-900">{talentPoolInfo.title}</p>
                     </div>
+                    <p className="text-2xl font-bold text-gray-900 mb-2">{talentPoolInfo.value}</p>
+                    <p className="text-sm text-gray-600">{talentPoolInfo.description}</p>
+                  </div>
+
+                  <div className="border-l-4 border-amber-500 pl-4">
+                    <div className="flex items-start space-x-2 mb-2">
+                      <Clock className="w-5 h-5 text-gray-600 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm font-medium text-gray-900">{noticePeriodInfo.title}</p>
+                    </div>
+                    <p className="text-2xl font-bold text-gray-900 mb-2">{noticePeriodInfo.value}</p>
+                    <p className="text-sm text-gray-600">{noticePeriodInfo.description}</p>
+                  </div>
+
+                  <div className="border-l-4 border-green-500 pl-4">
+                    <div className="flex items-start space-x-2 mb-2">
+                      <DollarSign className="w-5 h-5 text-gray-600 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm font-medium text-gray-900">{compensationInfo.title}</p>
+                    </div>
+                    <p className="text-2xl font-bold text-gray-900 mb-2">{compensationInfo.value}</p>
+                    <p className="text-sm text-gray-600">{compensationInfo.description}</p>
                   </div>
                 </div>
 
-                {/* Compensation Range */}
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                  <div className="flex items-start space-x-3">
-                    <DollarSign className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900 mb-1">Compensation Range</p>
-                      <p className="text-sm text-gray-700">{selectedReview.compensation_range}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Information Source */}
-                <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-start space-x-3">
-                    <Info className="w-5 h-5 text-gray-600 mt-0.5 flex-shrink-0" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900 mb-1">Information Source</p>
-                      <p className="text-xs text-gray-600">
-                        Market data aggregated from industry reports, salary surveys, and job board analytics.
-                      </p>
-                    </div>
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <p className="text-xs text-gray-500 flex items-center mb-2">
+                    <TrendingUp className="w-3 h-3 mr-1" />
+                    Last updated: Market data as of Sept 2025
+                  </p>
+                  <p className="text-xs font-medium text-gray-700 mb-1">Data Sources:</p>
+                  <div className="flex flex-wrap gap-1">
+                    <span className="px-2 py-1 bg-white border border-gray-200 text-xs text-gray-600 rounded">
+                      Industry Reports
+                    </span>
+                    <span className="px-2 py-1 bg-white border border-gray-200 text-xs text-gray-600 rounded">
+                      Salary Surveys
+                    </span>
+                    <span className="px-2 py-1 bg-white border border-gray-200 text-xs text-gray-600 rounded">
+                      Job Boards
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="border-t border-gray-200 px-6 py-4 bg-gray-50 flex justify-end space-x-3">
-            <button
-              onClick={() => handleApprove(selectedReview.id)}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-            >
-              <CheckCircle className="w-4 h-4 inline mr-2" />
-              Approve
-            </button>
-            <button
-              onClick={() => handleReject(selectedReview.id)}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
-            >
-              <XCircle className="w-4 h-4 inline mr-2" />
-              Reject
-            </button>
           </div>
         </div>
       </div>
     );
   }
 
+  const filteredReviews = getFilteredReviews();
+
   return (
     <div className="space-y-6 flex flex-col">
-      {/* Header with Sub-navigation */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Reviews</h1>
         <p className="text-gray-600">Review and manage requisitions sent for approval</p>
 
-        {/* Sub-navigation tabs */}
-        {onNavigate && (
-          <div className="flex space-x-1 mt-4 border-b border-gray-200">
-            <button
-              className="px-4 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-600"
-            >
-              Reviews
-            </button>
-            <button
-              onClick={() => onNavigate('ansr-review')}
-              className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:border-b-2 hover:border-gray-300"
-            >
-              ANSR Review
-            </button>
-          </div>
-        )}
+        <div className="flex space-x-1 mt-4 border-b border-gray-200">
+          <button
+            onClick={() => setActiveReviewTab('draft')}
+            className={`px-4 py-2 text-sm font-medium ${
+              activeReviewTab === 'draft'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-gray-900 hover:border-b-2 hover:border-gray-300'
+            }`}
+          >
+            Draft Reviews ({draftReviews.length})
+          </button>
+          <button
+            onClick={() => setActiveReviewTab('ansr')}
+            className={`px-4 py-2 text-sm font-medium ${
+              activeReviewTab === 'ansr'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-gray-900 hover:border-b-2 hover:border-gray-300'
+            }`}
+          >
+            ANSR Reviews ({ansrReviews.length})
+          </button>
+          <button
+            onClick={() => setActiveReviewTab('final')}
+            className={`px-4 py-2 text-sm font-medium ${
+              activeReviewTab === 'final'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-gray-900 hover:border-b-2 hover:border-gray-300'
+            }`}
+          >
+            Final Reviews ({finalReviews.length})
+          </button>
+        </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -441,21 +667,33 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm font-medium">Final Reviews</p>
+              <p className="text-gray-600 text-sm font-medium">ANSR Reviews</p>
               <p className="text-2xl font-bold text-blue-600">
-                {finalReviews.length}
+                {ansrReviews.length}
               </p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <ClipboardCheck className="w-6 h-6 text-blue-600" />
+              <FileText className="w-6 h-6 text-blue-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-600 text-sm font-medium">Final Reviews</p>
+              <p className="text-2xl font-bold text-green-600">
+                {finalReviews.length}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <ClipboardCheck className="w-6 h-6 text-green-600" />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Reviews Table */}
       <div className="bg-white rounded-xl border border-gray-200">
-        {/* Bulk Actions Bar */}
         {selectedIds.length > 0 && (
           <div className="bg-blue-50 border-b border-blue-200 px-6 py-3 flex items-center justify-between">
             <span className="text-sm font-medium text-blue-900">
@@ -484,7 +722,6 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
           </div>
         )}
 
-        {/* Bulk Reject Comment Box */}
         {showBulkActions && selectedIds.length > 0 && (
           <div className="bg-amber-50 border-b border-amber-200 px-6 py-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -513,7 +750,7 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
                 <th className="px-4 py-3 text-left">
                   <input
                     type="checkbox"
-                    checked={selectedIds.length === mockReviews.length}
+                    checked={selectedIds.length === filteredReviews.length && filteredReviews.length > 0}
                     onChange={toggleSelectAll}
                     className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                   />
@@ -528,7 +765,7 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
                   Total Positions
                 </th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Previous Stage
+                  Stage
                 </th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
@@ -536,7 +773,7 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {mockReviews.map((review) => (
+              {filteredReviews.map((review) => (
                 <tr
                   key={review.id}
                   className="hover:bg-gray-50 transition-colors cursor-pointer"
@@ -568,38 +805,16 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleViewReviewClick(review);
-                        }}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="View Details"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleApprove(review.id);
-                        }}
-                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                        title="Approve"
-                      >
-                        <CheckCircle className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleReject(review.id);
-                        }}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Reject"
-                      >
-                        <XCircle className="w-4 h-4" />
-                      </button>
-                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleViewReviewClick(review);
+                      }}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="View Details"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -607,15 +822,14 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsL
           </table>
         </div>
 
-        {/* Empty State */}
-        {mockReviews.length === 0 && (
+        {filteredReviews.length === 0 && (
           <div className="text-center py-12">
             <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
               No reviews pending
             </h3>
             <p className="text-gray-600">
-              All caught up! No requisitions awaiting review at the moment.
+              All caught up! No requisitions awaiting review in this category.
             </p>
           </div>
         )}
