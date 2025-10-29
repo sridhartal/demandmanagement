@@ -9,7 +9,9 @@ import { CreateManualPlan } from './components/demand-plans/CreateManualPlan';
 import { BulkUpload } from './components/demand-plans/BulkUpload';
 import { AICreate } from './components/demand-plans/AICreate';
 import { DemandPlansList } from './components/demand-plans/DemandPlansList';
+import { PositionDetail } from './components/demand-plans/PositionDetail';
 import { ApprovalsList } from './components/approvals/ApprovalsList';
+import { DemandPlan } from './types';
 import { ANSRReview } from './components/approvals/ANSRReview';
 import { Analytics } from './components/analytics/Analytics';
 import { OrgChartBuilder } from './components/org-chart/OrgChartBuilder';
@@ -20,6 +22,7 @@ function App() {
   const { steps, currentStep, isOnboardingActive, completeStep, skipOnboarding } = useOnboarding();
   const [activeTab, setActiveTab] = useState('demand-plans');
   const [selectedReviewId, setSelectedReviewId] = useState<string | null>(null);
+  const [selectedPosition, setSelectedPosition] = useState<DemandPlan | null>(null);
 
   // Mock user data
   const mockUser = {
@@ -52,6 +55,7 @@ function App() {
       'create-manual': { label: 'Create Manually', parent: 'demand-plans' },
       'bulk-upload': { label: 'Bulk Upload', parent: 'demand-plans' },
       'ai-create': { label: 'AI Assistant', parent: 'demand-plans' },
+      'position-detail': { label: 'Position Details', parent: 'demand-plans' },
       'jd-creator': { label: 'JD Creator' },
       'approvals': { label: 'Reviews' },
       'ansr-review': { label: 'ANSR Review', parent: 'approvals' },
@@ -87,6 +91,16 @@ function App() {
     setActiveTab('review-detail');
   };
 
+  const handleViewPosition = (position: DemandPlan) => {
+    setSelectedPosition(position);
+    setActiveTab('position-detail');
+  };
+
+  const handleBackFromPosition = () => {
+    setSelectedPosition(null);
+    setActiveTab('demand-plans');
+  };
+
   const renderMainContent = () => {
     switch (activeTab) {
       case 'create-manual':
@@ -96,7 +110,13 @@ function App() {
       case 'ai-create':
         return <AICreate onBack={() => setActiveTab('demand-plans')} />;
       case 'demand-plans':
-        return <DemandPlansList onNavigate={handleTabChange} />;
+        return <DemandPlansList onNavigate={handleTabChange} onViewPosition={handleViewPosition} />;
+      case 'position-detail':
+        return selectedPosition ? (
+          <PositionDetail position={selectedPosition} onBack={handleBackFromPosition} />
+        ) : (
+          <DemandPlansList onNavigate={handleTabChange} onViewPosition={handleViewPosition} />
+        );
       case 'jd-creator':
         return <JDCreator />;
       case 'approvals':
@@ -112,7 +132,7 @@ function App() {
       case 'settings':
         return <Settings />;
       default:
-        return <DemandPlansList onNavigate={handleTabChange} />;
+        return <DemandPlansList onNavigate={handleTabChange} onViewPosition={handleViewPosition} />;
     }
   };
 
