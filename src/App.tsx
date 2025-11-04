@@ -23,6 +23,8 @@ function App() {
   const [activeTab, setActiveTab] = useState('demand-plans');
   const [selectedReviewId, setSelectedReviewId] = useState<string | null>(null);
   const [selectedPosition, setSelectedPosition] = useState<DemandPlan | null>(null);
+  const [editingRequisitionId, setEditingRequisitionId] = useState<string | null>(null);
+  const [ansrReturnTab, setAnsrReturnTab] = useState<string>('approvals');
 
   // Mock user data
   const mockUser = {
@@ -56,6 +58,7 @@ function App() {
       'bulk-upload': { label: 'Bulk Upload', parent: 'demand-plans' },
       'ai-create': { label: 'AI Assistant', parent: 'demand-plans' },
       'position-detail': { label: 'Position Details', parent: 'demand-plans' },
+      'edit-requisition': { label: 'Edit Requisition', parent: ansrReturnTab },
       'jd-creator': { label: 'JD Creator' },
       'approvals': { label: 'Reviews' },
       'ansr-review': { label: 'ANSR Review', parent: 'approvals' },
@@ -77,6 +80,9 @@ function App() {
           setActiveTab(current.parent!);
           if (current.parent === 'approvals') {
             setSelectedReviewId(null);
+          }
+          if (current.parent === 'demand-plans' || current.parent === 'approvals') {
+            setEditingRequisitionId(null);
           }
         }
       });
@@ -101,6 +107,17 @@ function App() {
     setActiveTab('demand-plans');
   };
 
+  const handleEditRequisition = (requisitionId: string, fromTab: string = 'approvals') => {
+    setEditingRequisitionId(requisitionId);
+    setAnsrReturnTab(fromTab);
+    setActiveTab('edit-requisition');
+  };
+
+  const handleBackFromEdit = () => {
+    setEditingRequisitionId(null);
+    setActiveTab(ansrReturnTab);
+  };
+
   const renderMainContent = () => {
     switch (activeTab) {
       case 'create-manual':
@@ -110,7 +127,7 @@ function App() {
       case 'ai-create':
         return <AICreate onBack={() => setActiveTab('demand-plans')} />;
       case 'demand-plans':
-        return <DemandPlansList onNavigate={handleTabChange} onViewPosition={handleViewPosition} />;
+        return <DemandPlansList onNavigate={handleTabChange} onViewPosition={handleViewPosition} onEditRequisition={(id) => handleEditRequisition(id, 'demand-plans')} />;
       case 'position-detail':
         return selectedPosition ? (
           <PositionDetail position={selectedPosition} onBack={handleBackFromPosition} />
@@ -120,9 +137,15 @@ function App() {
       case 'jd-creator':
         return <JDCreator />;
       case 'approvals':
-        return <ApprovalsList onViewReview={handleViewReview} onNavigate={handleTabChange} />;
+        return <ApprovalsList onViewReview={handleViewReview} onNavigate={handleTabChange} onEditRequisition={(id) => handleEditRequisition(id, 'approvals')} />;
       case 'ansr-review':
-        return <ANSRReview />;
+        return <ANSRReview onEditRequisition={(id) => handleEditRequisition(id, 'ansr-review')} />;
+      case 'edit-requisition':
+        return editingRequisitionId ? (
+          <ANSRReview editingId={editingRequisitionId} onBack={handleBackFromEdit} />
+        ) : (
+          <ANSRReview onEditRequisition={(id) => handleEditRequisition(id, ansrReturnTab)} />
+        );
       case 'review-detail':
         return <ApprovalsList onViewReview={handleViewReview} reviewId={selectedReviewId} />;
       case 'analytics':
@@ -132,7 +155,7 @@ function App() {
       case 'settings':
         return <Settings />;
       default:
-        return <DemandPlansList onNavigate={handleTabChange} onViewPosition={handleViewPosition} />;
+        return <DemandPlansList onNavigate={handleTabChange} onViewPosition={handleViewPosition} onEditRequisition={(id) => handleEditRequisition(id, 'demand-plans')} />;
     }
   };
 

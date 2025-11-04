@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Eye, Edit, Save, X, MessageSquare, Users, MapPin, Briefcase, CheckCircle } from 'lucide-react';
 
 interface Requisition {
@@ -21,15 +21,31 @@ interface Requisition {
 
 interface ANSRReviewProps {
   onBack?: () => void;
+  editingId?: string | null;
+  onEditRequisition?: (id: string) => void;
 }
 
-export function ANSRReview({ onBack }: ANSRReviewProps) {
+export function ANSRReview({ onBack, editingId: initialEditingId, onEditRequisition }: ANSRReviewProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(initialEditingId || null);
   const [showComments, setShowComments] = useState<string | null>(null);
   const [editData, setEditData] = useState<Partial<Requisition>>({});
   const [skillInput, setSkillInput] = useState('');
   const [optionalSkillInput, setOptionalSkillInput] = useState('');
+
+  useEffect(() => {
+    if (initialEditingId) {
+      const requisition = mockRequisitions.find(r => r.id === initialEditingId);
+      if (requisition) {
+        const initData = {
+          ...requisition,
+          requisition_id: requisition.requisition_id || '',
+          position_ids: requisition.position_ids || Array(requisition.total_positions).fill('')
+        };
+        setEditData(initData);
+      }
+    }
+  }, [initialEditingId]);
 
   const mockRequisitions: Requisition[] = [
     {
@@ -93,13 +109,17 @@ export function ANSRReview({ onBack }: ANSRReviewProps) {
   };
 
   const handleEdit = (requisition: Requisition) => {
-    setEditingId(requisition.id);
-    const initData = {
-      ...requisition,
-      requisition_id: requisition.requisition_id || '',
-      position_ids: requisition.position_ids || Array(requisition.total_positions).fill('')
-    };
-    setEditData(initData);
+    if (onEditRequisition) {
+      onEditRequisition(requisition.id);
+    } else {
+      setEditingId(requisition.id);
+      const initData = {
+        ...requisition,
+        requisition_id: requisition.requisition_id || '',
+        position_ids: requisition.position_ids || Array(requisition.total_positions).fill('')
+      };
+      setEditData(initData);
+    }
   };
 
   const handleSave = () => {
@@ -110,8 +130,12 @@ export function ANSRReview({ onBack }: ANSRReviewProps) {
   };
 
   const handleCancel = () => {
-    setEditingId(null);
-    setEditData({});
+    if (onBack) {
+      onBack();
+    } else {
+      setEditingId(null);
+      setEditData({});
+    }
   };
 
   const handleBulkEdit = () => {

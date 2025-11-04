@@ -34,9 +34,10 @@ interface ApprovalsListProps {
   onViewReview?: (reviewId: string) => void;
   reviewId?: string | null;
   onNavigate?: (tab: string) => void;
+  onEditRequisition?: (id: string) => void;
 }
 
-export function ApprovalsList({ onViewReview, reviewId, onNavigate }: ApprovalsListProps) {
+export function ApprovalsList({ onViewReview, reviewId, onNavigate, onEditRequisition }: ApprovalsListProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkComment, setBulkComment] = useState('');
   const [bulkApprovalComment, setBulkApprovalComment] = useState('');

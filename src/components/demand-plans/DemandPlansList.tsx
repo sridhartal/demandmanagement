@@ -5,9 +5,10 @@ import { DemandPlan } from '../../types';
 interface DemandPlansListProps {
   onNavigate: (tab: string) => void;
   onViewPosition?: (position: DemandPlan) => void;
+  onEditRequisition?: (id: string) => void;
 }
 
-export function DemandPlansList({ onNavigate, onViewPosition }: DemandPlansListProps) {
+export function DemandPlansList({ onNavigate, onViewPosition, onEditRequisition }: DemandPlansListProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('created_at');
@@ -182,8 +183,9 @@ export function DemandPlansList({ onNavigate, onViewPosition }: DemandPlansListP
   };
 
   const handleEdit = (plan: DemandPlan) => {
-    console.log('Editing plan:', plan);
-    alert('Edit functionality will be implemented');
+    if (onEditRequisition) {
+      onEditRequisition(plan.id);
+    }
   };
 
   const getStageColor = (stage: string) => {
