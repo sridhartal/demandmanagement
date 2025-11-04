@@ -15,6 +15,8 @@ interface Requisition {
   reviewer_comments?: string;
   created_by: string;
   created_at: string;
+  requisition_id?: string;
+  position_ids?: string[];
 }
 
 interface ANSRReviewProps {
@@ -26,6 +28,8 @@ export function ANSRReview({ onBack }: ANSRReviewProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showComments, setShowComments] = useState<string | null>(null);
   const [editData, setEditData] = useState<Partial<Requisition>>({});
+  const [skillInput, setSkillInput] = useState('');
+  const [optionalSkillInput, setOptionalSkillInput] = useState('');
 
   const mockRequisitions: Requisition[] = [
     {
@@ -90,7 +94,12 @@ export function ANSRReview({ onBack }: ANSRReviewProps) {
 
   const handleEdit = (requisition: Requisition) => {
     setEditingId(requisition.id);
-    setEditData(requisition);
+    const initData = {
+      ...requisition,
+      requisition_id: requisition.requisition_id || '',
+      position_ids: requisition.position_ids || Array(requisition.total_positions).fill('')
+    };
+    setEditData(initData);
   };
 
   const handleSave = () => {
@@ -115,6 +124,40 @@ export function ANSRReview({ onBack }: ANSRReviewProps) {
 
   const handleUpdateField = (field: keyof Requisition, value: any) => {
     setEditData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const addSkill = (skillType: 'mandatory_skills' | 'optional_skills', skillValue: string) => {
+    const trimmedSkill = skillValue.trim();
+    if (!trimmedSkill) return;
+
+    const currentSkills = editData[skillType] || [];
+    if (!currentSkills.includes(trimmedSkill)) {
+      handleUpdateField(skillType, [...currentSkills, trimmedSkill]);
+    }
+
+    if (skillType === 'mandatory_skills') {
+      setSkillInput('');
+    } else {
+      setOptionalSkillInput('');
+    }
+  };
+
+  const removeSkill = (skillType: 'mandatory_skills' | 'optional_skills', index: number) => {
+    const currentSkills = editData[skillType] || [];
+    handleUpdateField(skillType, currentSkills.filter((_, i) => i !== index));
+  };
+
+  const handlePositionIdChange = (index: number, value: string) => {
+    const positionIds = editData.position_ids || [];
+    const newPositionIds = [...positionIds];
+    newPositionIds[index] = value;
+    handleUpdateField('position_ids', newPositionIds);
+  };
+
+  const initializePositionIds = (count: number) => {
+    const currentIds = editData.position_ids || [];
+    const newIds = Array(count).fill('').map((_, i) => currentIds[i] || '');
+    handleUpdateField('position_ids', newIds);
   };
 
   if (editingId) {
@@ -150,6 +193,18 @@ export function ANSRReview({ onBack }: ANSRReviewProps) {
         {/* Edit Form */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-6">
           <div className="grid grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Requisition ID *
+              </label>
+              <input
+                type="text"
+                value={editData.requisition_id || ''}
+                onChange={(e) => handleUpdateField('requisition_id', e.target.value)}
+                placeholder="Enter requisition ID"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Position Title
@@ -190,7 +245,11 @@ export function ANSRReview({ onBack }: ANSRReviewProps) {
               <input
                 type="number"
                 value={editData.total_positions || 0}
-                onChange={(e) => handleUpdateField('total_positions', parseInt(e.target.value))}
+                onChange={(e) => {
+                  const count = parseInt(e.target.value) || 0;
+                  handleUpdateField('total_positions', count);
+                  initializePositionIds(count);
+                }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
@@ -219,28 +278,126 @@ export function ANSRReview({ onBack }: ANSRReviewProps) {
             />
           </div>
 
+          {/* Position IDs */}
+          {editData.total_positions && editData.total_positions > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Position IDs ({editData.total_positions} positions)
+              </label>
+              <div className="grid grid-cols-2 gap-4">
+                {Array.from({ length: editData.total_positions || 0 }).map((_, index) => (
+                  <div key={index}>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      Position {index + 1} ID
+                    </label>
+                    <input
+                      type="text"
+                      value={(editData.position_ids && editData.position_ids[index]) || ''}
+                      onChange={(e) => handlePositionIdChange(index, e.target.value)}
+                      placeholder={`Enter ID for position ${index + 1}`}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Mandatory Skills */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Mandatory Skills (comma-separated)
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Required Skills *
             </label>
-            <input
-              type="text"
-              value={editData.mandatory_skills?.join(', ') || ''}
-              onChange={(e) => handleUpdateField('mandatory_skills', e.target.value.split(',').map(s => s.trim()))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
+            <div className="mb-3">
+              <div className="flex flex-wrap gap-2 mb-3 min-h-[2.5rem] p-3 border border-gray-300 rounded-lg bg-gray-50">
+                {editData.mandatory_skills && editData.mandatory_skills.length > 0 ? (
+                  editData.mandatory_skills.map((skill, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800 border border-blue-200"
+                    >
+                      {skill}
+                      <button
+                        type="button"
+                        onClick={() => removeSkill('mandatory_skills', index)}
+                        className="ml-2 text-blue-600 hover:text-blue-800 font-bold"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-gray-500 text-sm">No skills added yet</span>
+                )}
+              </div>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={skillInput}
+                  onChange={(e) => setSkillInput(e.target.value)}
+                  placeholder="Type a skill and press Enter to add..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addSkill('mandatory_skills', skillInput);
+                    }
+                  }}
+                />
+              </div>
+              <p className="mt-1 text-xs text-gray-500">
+                {editData.mandatory_skills?.length || 0} skills added
+              </p>
+            </div>
           </div>
 
+          {/* Optional Skills */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Optional Skills (comma-separated)
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Nice-to-Have Skills
+              <span className="text-gray-500 font-normal ml-1">(Optional)</span>
             </label>
-            <input
-              type="text"
-              value={editData.optional_skills?.join(', ') || ''}
-              onChange={(e) => handleUpdateField('optional_skills', e.target.value.split(',').map(s => s.trim()))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
+            <div className="mb-3">
+              <div className="flex flex-wrap gap-2 mb-3 min-h-[2.5rem] p-3 border border-gray-300 rounded-lg bg-gray-50">
+                {editData.optional_skills && editData.optional_skills.length > 0 ? (
+                  editData.optional_skills.map((skill, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700 border border-gray-200"
+                    >
+                      {skill}
+                      <button
+                        type="button"
+                        onClick={() => removeSkill('optional_skills', index)}
+                        className="ml-2 text-gray-600 hover:text-gray-800 font-bold"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-gray-500 text-sm">No optional skills added</span>
+                )}
+              </div>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={optionalSkillInput}
+                  onChange={(e) => setOptionalSkillInput(e.target.value)}
+                  placeholder="Type a skill and press Enter to add..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addSkill('optional_skills', optionalSkillInput);
+                    }
+                  }}
+                />
+              </div>
+              <p className="mt-1 text-xs text-gray-500">
+                {editData.optional_skills?.length || 0} skills added
+              </p>
+            </div>
           </div>
 
           {/* Comments Section */}
