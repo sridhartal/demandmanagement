@@ -357,7 +357,9 @@ export function ApprovalsList({ onViewReview, reviewId, onNavigate, onEditRequis
   };
 
   const handleViewReviewClick = (review: Review) => {
-    if (onViewReview) {
+    if (activeReviewTab === 'ansr' && onEditRequisition) {
+      onEditRequisition(review.id);
+    } else if (onViewReview) {
       onViewReview(review.id);
     }
   };
