@@ -25,29 +25,7 @@ interface ANSRReviewProps {
   onEditRequisition?: (id: string) => void;
 }
 
-export function ANSRReview({ onBack, editingId: initialEditingId, onEditRequisition }: ANSRReviewProps) {
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [editingId, setEditingId] = useState<string | null>(initialEditingId || null);
-  const [showComments, setShowComments] = useState<string | null>(null);
-  const [editData, setEditData] = useState<Partial<Requisition>>({});
-  const [skillInput, setSkillInput] = useState('');
-  const [optionalSkillInput, setOptionalSkillInput] = useState('');
-
-  useEffect(() => {
-    if (initialEditingId) {
-      const requisition = mockRequisitions.find(r => r.id === initialEditingId);
-      if (requisition) {
-        const initData = {
-          ...requisition,
-          requisition_id: requisition.requisition_id || '',
-          position_ids: requisition.position_ids || Array(requisition.total_positions).fill('')
-        };
-        setEditData(initData);
-      }
-    }
-  }, [initialEditingId]);
-
-  const mockRequisitions: Requisition[] = [
+const mockRequisitions: Requisition[] = [
     {
       id: '1',
       position_title: 'Senior Frontend Developer',
@@ -93,6 +71,28 @@ export function ANSRReview({ onBack, editingId: initialEditingId, onEditRequisit
       created_at: '2024-01-15T10:00:00Z'
     }
   ];
+
+export function ANSRReview({ onBack, editingId: initialEditingId, onEditRequisition }: ANSRReviewProps) {
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [editingId, setEditingId] = useState<string | null>(initialEditingId || null);
+  const [showComments, setShowComments] = useState<string | null>(null);
+  const [editData, setEditData] = useState<Partial<Requisition>>({});
+  const [skillInput, setSkillInput] = useState('');
+  const [optionalSkillInput, setOptionalSkillInput] = useState('');
+
+  useEffect(() => {
+    if (initialEditingId) {
+      const requisition = mockRequisitions.find(r => r.id === initialEditingId);
+      if (requisition) {
+        const initData = {
+          ...requisition,
+          requisition_id: requisition.requisition_id || '',
+          position_ids: requisition.position_ids || Array(requisition.total_positions).fill('')
+        };
+        setEditData(initData);
+      }
+    }
+  }, [initialEditingId]);
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev =>
